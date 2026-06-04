@@ -1,51 +1,46 @@
-# Dify DSL Structure
+# Dify DSL 结构
 
-This reference covers app-level structure, graph wiring, variables, dependencies,
-and import/export compatibility.
+本参考文档涵盖应用级结构、图连线、变量、依赖和导入/导出兼容性。
 
-## Contents
+## 目录
 
-- Official baseline
-- Top-level YAML
-- Mode rules
-- Dependencies
-- Official node type set
-- Node and edge wrappers
-- Variable references
-- Workflow variables
-- Import-sensitive details
-- Agent-chat/model-config apps
+- 官方基线
+- 顶层 YAML
+- 模式规则
+- 依赖
+- 官方节点类型集
+- 节点和边包装器
+- 变量引用
+- 工作流变量
+- 导入敏感细节
+- Agent-chat / 模型配置应用
 
-## Official Baseline
+## 官方基线
 
-- Dify's source declares `CURRENT_APP_DSL_VERSION = "0.6.0"`.
-- Import expects `version` to be a string.
-- New generated DSL should target `version: "0.6.0"` unless the user explicitly
-  requests compatibility with an older Dify workspace.
-- Dify can backfill latest dependencies for very old imports (`<=0.1.5`) when
-  `dependencies` is absent. For new DSL, explicit dependencies are safer for
-  cross-workspace import.
-- Exported workflow graphs mirror ReactFlow: each node has an outer wrapper and a
-  `data` object; edges connect `source`/`target` node IDs and handles.
+- Dify 源码声明 `CURRENT_APP_DSL_VERSION = "0.6.0"`。
+- 导入时期望 `version` 为字符串类型。
+- 新生成的 DSL 应以 `version: "0.6.0"` 为目标，除非用户明确要求兼容旧版 Dify 工作区。
+- Dify 可在 `dependencies` 缺失时为非常旧的导入版本（`<=0.1.5`）回填最新依赖。对于新 DSL，显式声明依赖对跨工作区导入更安全。
+- 导出的工作流图镜像 ReactFlow 结构：每个节点有一个外部包装器和一个 `data` 对象；边通过 `source`/`target` 节点 ID 和 handle 进行连接。
 
-Primary sources used for this skill:
+本 Skill 使用的主要资料来源：
 
-- Dify DSL version constant:
+- Dify DSL 版本常量：
   https://github.com/langgenius/dify/blob/main/api/constants/dsl_version.py
-- Dify app DSL import/export service:
+- Dify 应用 DSL 导入/导出服务：
   https://github.com/langgenius/dify/blob/main/api/services/app_dsl_service.py
-- Dify dependency analysis:
+- Dify 依赖分析：
   https://github.com/langgenius/dify/blob/main/api/services/plugin/dependencies_analysis.py
-- Dify workflow frontend types:
+- Dify 工作流前端类型：
   https://github.com/langgenius/dify/blob/main/web/app/components/workflow/types.ts
-- Sample workflow repositories:
+- 示例工作流仓库：
   https://github.com/BannyLon/DifyAIA,
   https://github.com/svcvit/Awesome-Dify-Workflow,
   https://github.com/wwwzhouhui/dify-for-dsl,
   https://github.com/g-krishna0/dify-export-test,
   https://github.com/Petrus-Han/dify-usecase-playground
 
-## Top-Level YAML
+## 顶层 YAML
 
 ```yaml
 app:
@@ -96,26 +91,23 @@ workflow:
       zoom: 0.8
 ```
 
-## Mode Rules
+## 模式规则
 
-| mode | Typical use | Input source | Terminal node |
+| 模式 | 典型用途 | 输入来源 | 终端节点 |
 | --- | --- | --- | --- |
-| `workflow` | one-shot, batch, triggered, or integration automation | start variables or trigger payload | `end`; side-effect trigger flows may finish at a tool |
-| `advanced-chat` | Chatflow with multi-turn chat | `sys.query`, `sys.files`, conversation variables | `answer` |
-| `chat` | legacy/simple chat app | model config | model config |
-| `completion` | legacy completion app | model config/start inputs | model config |
-| `agent-chat` | legacy agent chat app | model config | model config |
+| `workflow` | 一次性执行、批处理、触发式或集成自动化 | 起始变量或触发载荷 | `end`；副作用触发流可能在工具节点结束 |
+| `advanced-chat` | 支持多轮对话的 Chatflow | `sys.query`、`sys.files`、对话变量 | `answer` |
+| `chat` | 旧版/简单聊天应用 | 模型配置 | 模型配置 |
+| `completion` | 旧版补全应用 | 模型配置/起始输入 | 模型配置 |
+| `agent-chat` | 旧版 Agent 聊天应用 | 模型配置 | 模型配置 |
 
-For new generated DSL, prefer `workflow` or `advanced-chat`. Default to
-`workflow` unless the user needs Chatflow behavior such as multi-turn memory,
-`sys.query`, `sys.files`, or answer streaming.
+新生成的 DSL 优先使用 `workflow` 或 `advanced-chat`。默认使用 `workflow`，除非用户需要 Chatflow 行为，如多轮记忆、`sys.query`、`sys.files` 或流式应答。
 
-## Dependencies
+## 依赖
 
-Official Dify app DSL dependencies can be `marketplace`, `package`, or `github`.
-Remote plugins are not exportable by official Dify export logic.
+官方 Dify 应用 DSL 依赖类型可以是 `marketplace`、`package` 或 `github`。远程插件无法通过官方 Dify 导出逻辑导出。
 
-Marketplace plugin dependency:
+Marketplace 插件依赖：
 
 ```yaml
 dependencies:
@@ -126,7 +118,7 @@ dependencies:
       version: null
 ```
 
-Package/private plugin dependency:
+Package/私有插件依赖：
 
 ```yaml
 dependencies:
@@ -137,7 +129,7 @@ dependencies:
       version: null
 ```
 
-GitHub-installed plugin dependency:
+GitHub 安装的插件依赖：
 
 ```yaml
 dependencies:
@@ -150,30 +142,22 @@ dependencies:
       github_plugin_unique_identifier: author/plugin:0.0.1@4069e9bfe87735fcd0276e08b84eefdd87fb05e82aa5228ef44df17390a8239b
 ```
 
-Use the exact `marketplace_plugin_unique_identifier` or `plugin_unique_identifier`
-exported by the source Dify workspace when possible. If hand-authoring a public
-template, keep the plugin name and version realistic, but tell users they may need
-to reinstall or reselect the plugin in Dify after import.
+尽可能使用源 Dify 工作区导出的精确 `marketplace_plugin_unique_identifier` 或 `plugin_unique_identifier`。如果手写公共模板，保持插件名称和版本的真实性，但需告知用户导入后可能需要在 Dify 中重新安装或重新选择插件。
 
-Common dependency sources:
+常见依赖来源：
 
-- LLM providers: `model.provider`
-- Tool nodes: `provider_id` for dependency analysis, plus
-  `plugin_unique_identifier` when exported in the node
-- Agent strategies and built-in tools inside agent nodes
-- Knowledge retrieval/indexing and datasource nodes
+- LLM 提供商：`model.provider`
+- 工具节点：用于依赖分析的 `provider_id`，以及节点导出时的 `plugin_unique_identifier`
+- Agent 策略和 Agent 节点内的内置工具
+- 知识检索/索引和数据源节点
 
-Official export dependency extraction currently reads model providers from LLM,
-question-classifier, parameter-extractor, knowledge-retrieval rerank/embedding
-config, tool `provider_id`, and model-config apps. Preserve exported
-`dependencies` when available because complex agent/plugin arrangements can carry
-more detail than a hand-written dependency list.
+官方导出的依赖提取目前从 LLM、问题分类器、参数提取器、知识检索的 rerank/embedding 配置、工具 `provider_id` 以及模型配置应用中读取模型提供商。当可用时保留导出的 `dependencies`，因为复杂的 Agent/插件配置可能比手写的依赖列表包含更多细节。
 
-## Official Node Type Set
+## 官方节点类型集
 
 官方节点类型枚举（30 个）和输入变量类型列表见 `official-0.6-target.md` 的「Official Node Type Set」和「Input Variable Types」章节。
 
-## Node Wrapper
+## 节点包装器
 
 ```yaml
 - data:
@@ -195,9 +179,9 @@ more detail than a hand-written dependency list.
   height: 89
 ```
 
-Use string IDs. Dify exports numeric-looking IDs as strings; keep them quoted.
+使用字符串 ID。Dify 导出时将数字形式的 ID 作为字符串处理；保持引号包裹。
 
-Canvas note nodes are non-executable annotations:
+画布备注节点是不可执行的注释：
 
 ```yaml
 - data:
@@ -218,10 +202,9 @@ Canvas note nodes are non-executable annotations:
   type: custom-note
 ```
 
-Do not treat missing/empty `data.type` as an error when wrapper `type` is
-`custom-note`.
+当包装器 `type` 为 `custom-note` 时，不要将缺失/空的 `data.type` 视为错误。
 
-## Edge Wrapper
+## 边包装器
 
 ```yaml
 - data:
@@ -239,17 +222,16 @@ Do not treat missing/empty `data.type` as an error when wrapper `type` is
   zIndex: 0
 ```
 
-Handle conventions:
+Handle 约定：
 
-- Linear edge: `sourceHandle: source`, `targetHandle: target`
-- `if-else`: source handle is the case ID (`"true"`, `"false"`, or UUID)
-- `question-classifier`: source handle is the class ID (`"1"`, `"2"`, ...)
-- Iteration/loop internals: include `isInIteration` or `isInLoop` and the parent
-  node ID fields when exported by Dify
+- 线性边：`sourceHandle: source`，`targetHandle: target`
+- `if-else`：source handle 为分支 ID（`"true"`、`"false"` 或 UUID）
+- `question-classifier`：source handle 为分类 ID（`"1"`、`"2"`、...）
+- 迭代/循环内部：当 Dify 导出时包含 `isInIteration` 或 `isInLoop` 以及父节点 ID 字段
 
-## Variable References
+## 变量引用
 
-Prompt interpolation:
+Prompt 插值：
 
 ```text
 {{#node_id.field#}}
@@ -260,7 +242,7 @@ Prompt interpolation:
 {{#env.API_KEY#}}
 ```
 
-Selector fields:
+选择器字段：
 
 ```yaml
 value_selector: ["1770000000001", text]
@@ -268,13 +250,11 @@ variable_selector: ["sys", query]
 query: ["1770000000001", text]
 ```
 
-Some exported DSLs use dotted system selectors in arrays, for example
-`["sys.query"]`. Prefer the two-element selector (`["sys", "query"]`) for new
-files unless matching an existing export.
+部分导出的 DSL 在数组中使用点号形式的系统选择器，例如 `["sys.query"]`。新文件优先使用双元素选择器（`["sys", "query"]`），除非需要匹配已有导出。
 
-## Workflow Variables
+## 工作流变量
 
-Conversation variables are for `advanced-chat` memory/state:
+对话变量用于 `advanced-chat` 的记忆/状态：
 
 ```yaml
 conversation_variables:
@@ -286,11 +266,9 @@ conversation_variables:
     value_type: string
 ```
 
-Older public exports sometimes omit `selector` on conversation variables. For new
-DSL, include it; when reviewing old DSL, absence of `selector` alone is not
-necessarily import-breaking.
+较早的公共导出有时会省略对话变量的 `selector`。新 DSL 应包含它；审查旧 DSL 时，仅缺失 `selector` 不一定导致导入失败。
 
-Environment variables are read-only workflow constants:
+环境变量是只读的工作流常量：
 
 ```yaml
 environment_variables:
@@ -302,30 +280,20 @@ environment_variables:
     value_type: string
 ```
 
-Supported value types commonly include `string`, `number`, `boolean`, `object`,
-`array[string]`, `array[number]`, `array[object]`, `array[file]`, and `file`.
+支持的值类型通常包括 `string`、`number`、`boolean`、`object`、`array[string]`、`array[number]`、`array[object]`、`array[file]` 和 `file`。
 
-## Import-Sensitive Details
+## 导入敏感细节
 
-- Quote `version`, node IDs, branch handles, and large numeric-looking values.
-  Some real DSLs leave `version: 0.3.0` unquoted and it often parses as a string,
-  but quoting avoids YAML parser differences.
-- Keep `sourceType`/`targetType` synchronized with each endpoint node's `data.type`.
-- Do not omit final nodes: `workflow` needs `end`; `advanced-chat` needs at least
-  one reachable `answer`.
-- `agent-chat`, `chat`, and `completion` may use top-level `model_config` instead
-  of `workflow.graph`; this is common in legacy/public exports.
-- Do not hardcode real plugin credentials. Exported plugin authorization generally
-  lives in Dify, not in DSL.
-- Tool nodes generated from real exports often include `paramSchemas` and `params`.
-  They are verbose but improve UI fidelity. When hand-authoring, keep required
-  tool identity and parameters, and prefer copying `paramSchemas` from an export
-  if the target Dify import complains.
+- 为 `version`、节点 ID、分支 handle 和大数值形式的值加引号。部分真实 DSL 将 `version: 0.3.0` 不加引号，它通常也能解析为字符串，但加引号可避免 YAML 解析器差异。
+- 保持 `sourceType`/`targetType` 与各端点节点的 `data.type` 同步。
+- 不要省略终端节点：`workflow` 需要 `end`；`advanced-chat` 至少需要一个可达的 `answer`。
+- `agent-chat`、`chat` 和 `completion` 可能使用顶层 `model_config` 而非 `workflow.graph`；这在旧版/公共导出中很常见。
+- 不要硬编码真实的插件凭据。导出的插件授权通常保存在 Dify 中，而非 DSL 里。
+- 从真实导出生成的工具节点通常包含 `paramSchemas` 和 `params`。它们较为冗长但提升了 UI 保真度。手写时保留必要的工具标识和参数，如果目标 Dify 导入报错，优先从导出中复制 `paramSchemas`。
 
-## Agent-Chat / Model Config Apps
+## Agent-chat / 模型配置应用
 
-Some public DSLs, especially `agent-chat`, do not have a workflow graph. They use
-top-level `model_config`:
+部分公共 DSL，特别是 `agent-chat`，没有工作流图。它们使用顶层 `model_config`：
 
 ```yaml
 app:
@@ -354,6 +322,4 @@ model_config:
   user_input_form: []
 ```
 
-For new apps, prefer graph-based `workflow` or `advanced-chat` unless the user
-explicitly asks for legacy/simple app modes. When reviewing existing DSL, do not
-fail an `agent-chat` app just because `workflow.graph` is absent.
+新应用优先使用基于图的 `workflow` 或 `advanced-chat`，除非用户明确要求旧版/简单应用模式。审查现有 DSL 时，不要仅因为 `workflow.graph` 缺失就判定 `agent-chat` 应用失败。

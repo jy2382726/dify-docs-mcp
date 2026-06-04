@@ -1,20 +1,17 @@
-# Node Schemas
+# 节点 Schema
 
-All snippets below show the `data:` payload. Wrap them with the standard node
-wrapper from `dsl-structure.md`.
+以下所有代码片段展示的是 `data:` 载荷。使用时需按照 `dsl-structure.md` 中的标准节点包装结构进行包裹。
 
-## Contents
+## 目录
 
-- Basic flow: start, end, answer
-- Reasoning and transform: llm, code, template-transform
-- Branching and extraction: if-else, question-classifier, parameter-extractor
-- External access: http-request, tool, datasource
-- Variables and documents: variable-aggregator, assigner, document-extractor,
-  list-operator
-- Knowledge: knowledge-retrieval, knowledge-index
-- Agents and containers: agent, iteration, loop
-- Human/trigger/canvas nodes: human-input, trigger-schedule, trigger-webhook,
-  trigger-plugin, custom-note
+- 基础流程：start、end、answer
+- 推理与转换：llm、code、template-transform
+- 分支与提取：if-else、question-classifier、parameter-extractor
+- 外部访问：http-request、tool、datasource
+- 变量与文档：variable-aggregator、assigner、document-extractor、list-operator
+- 知识库：knowledge-retrieval、knowledge-index
+- Agent 与容器：agent、iteration、loop
+- 人工输入/触发/画布节点：human-input、trigger-schedule、trigger-webhook、trigger-plugin、custom-note
 
 ## start
 
@@ -29,8 +26,7 @@ variables:
     max_length: 50000
 ```
 
-For `advanced-chat`, start variables are often empty and user input comes from
-`{{#sys.query#}}` and `{{#sys.files#}}`.
+advanced-chat 模式下，start 变量通常为空，用户输入来自 `{{#sys.query#}}` 和 `{{#sys.files#}}`。
 
 ## end
 
@@ -42,7 +38,7 @@ outputs:
     value_selector: ["1770000000001", text]
 ```
 
-Use `end` for `workflow` apps.
+用于 workflow 模式应用。
 
 ## answer
 
@@ -53,8 +49,7 @@ answer: "{{#1770000000001.text#}}"
 variables: []
 ```
 
-Use `answer` for `advanced-chat` apps. Multiple branches may each end in their own
-answer node.
+用于 advanced-chat 模式应用。多个分支可以各自以独立的 answer 节点结束。
 
 ## llm
 
@@ -90,8 +85,7 @@ vision:
 selected: false
 ```
 
-`context.enabled: true` is used when feeding knowledge retrieval results into the
-LLM.
+当需要将知识检索结果传入 LLM 时，设置 `context.enabled: true`。
 
 ## code
 
@@ -113,8 +107,7 @@ outputs:
 selected: false
 ```
 
-The function must be named `main`; it must return a dict with keys matching
-`outputs`.
+函数必须命名为 `main`；返回值必须是 dict，且 key 与 `outputs` 中定义的字段匹配。
 
 ## if-else
 
@@ -134,10 +127,9 @@ cases:
 selected: false
 ```
 
-Branch edge `sourceHandle` must equal the target case ID.
+分支边的 `sourceHandle` 必须与目标 case 的 ID 一致。
 
-Common comparison operators: `contains`, `not contains`, `is`, `is not`, `empty`,
-`not empty`, `start with`, `end with`, `=`, `≠`, `>`, `<`, `≥`, `≤`.
+常用比较运算符：`contains`、`not contains`、`is`、`is not`、`empty`、`not empty`、`start with`、`end with`、`=`、`≠`、`>`、`<`、`≥`、`≤`。
 
 ## question-classifier
 
@@ -162,7 +154,7 @@ vision:
 selected: false
 ```
 
-Classifier branch edge handles are class IDs.
+分类器分支边的 handle 即为分类 ID。
 
 ## parameter-extractor
 
@@ -188,8 +180,7 @@ vision:
 selected: false
 ```
 
-Use after an LLM when you need a strict structured field before an `if-else` or
-tool call.
+在 LLM 之后使用，用于在进入 `if-else` 或工具调用之前提取严格的结构化字段。
 
 ## http-request
 
@@ -218,7 +209,7 @@ retry_config:
 selected: false
 ```
 
-Outputs commonly referenced: `body`, `status_code`, `headers`, `files`.
+常用输出字段：`body`、`status_code`、`headers`、`files`。
 
 ## template-transform
 
@@ -235,7 +226,7 @@ template: |
 selected: false
 ```
 
-Output is `output`.
+输出字段为 `output`。
 
 ## variable-aggregator
 
@@ -249,7 +240,7 @@ variables:
 selected: false
 ```
 
-Use to merge mutually exclusive branch outputs before `end`.
+用于在 `end` 节点之前合并互斥分支的输出。
 
 ## assigner / variable-assigner
 
@@ -264,8 +255,7 @@ items:
 selected: false
 ```
 
-Some newer exports use `variable-assigner`; follow the target workspace export
-style if editing an existing file.
+较新版本的导出文件使用 `variable-assigner`；编辑已有文件时请沿用目标工作区的导出风格。
 
 ## document-extractor
 
@@ -276,8 +266,7 @@ variable_selector: ["sys", files]
 selected: false
 ```
 
-Output is usually `text`. For file lists, pair with code/list nodes if you need
-the first file metadata.
+输出字段通常为 `text`。处理文件列表时，如需获取第一个文件的元数据，可搭配 code/list 节点使用。
 
 ## list-operator
 
@@ -296,7 +285,7 @@ variable: ["sys", files]
 selected: false
 ```
 
-Use for file list or array extraction before a code/tool node.
+用于在 code/tool 节点之前进行文件列表或数组提取。
 
 ## knowledge-retrieval
 
@@ -316,7 +305,7 @@ metadata_filtering_mode: disabled
 selected: false
 ```
 
-Feed results to an LLM through `context.variable_selector`.
+通过 `context.variable_selector` 将检索结果传入 LLM。
 
 ## tool
 
@@ -343,13 +332,9 @@ tool_parameters:
 selected: false
 ```
 
-Tool output fields depend on the plugin. Common fields are `text`, `data`,
-`result`, `json`, `files`, and `output`.
+工具输出字段取决于具体插件。常见字段有 `text`、`data`、`result`、`json`、`files` 和 `output`。
 
-`plugin_id`, `plugin_unique_identifier`, and `tool_node_version` are common in
-newer marketplace/package exports but are not universal. Built-in, MCP, API, and
-workflow tools may omit them. Preserve these fields when copying from an export;
-do not invent exact plugin identifiers.
+`plugin_id`、`plugin_unique_identifier` 和 `tool_node_version` 在较新的 marketplace/package 导出中常见，但并非所有工具都有。内置工具、MCP、API 和 workflow 工具可能会省略这些字段。从导出文件复制时请保留这些字段；不要凭空编造插件标识符。
 
 ## agent
 
@@ -395,8 +380,7 @@ start_node_id: "1770000000002"
 selected: false
 ```
 
-Exported Dify graphs also include an `iteration-start` helper node with wrapper
-`type: custom-iteration-start` and internal child nodes marked `isInIteration`.
+导出的 Dify 图结构中还包含一个 `iteration-start` 辅助节点（wrapper `type: custom-iteration-start`），以及标记了 `isInIteration` 的内部子节点。
 
 ### Iteration 完整内部结构示例
 
@@ -503,9 +487,7 @@ start_node_id: "1770000000002"
 selected: false
 ```
 
-Exported loop internals use `loop-start` and mark child edges/nodes with
-`isInLoop`. Dify's current node enum also includes `loop-end`; copy loop internals
-from an export when the loop contains nested branches or multiple exits.
+导出的 loop 内部结构使用 `loop-start`，子节点和边标记 `isInLoop`。Dify 当前的节点枚举还包含 `loop-end`；当 loop 包含嵌套分支或多个退出路径时，请从导出文件中复制完整的 loop 内部结构。
 
 ### Loop 完整内部结构示例
 
@@ -645,7 +627,7 @@ datasource_parameters: {}
 selected: false
 ```
 
-Datasource nodes are plugin-backed; copy from a real export whenever possible.
+数据源节点由插件提供支持；请尽可能从实际导出文件中复制。
 
 ## knowledge-index
 
@@ -662,7 +644,7 @@ retrieval_model:
 selected: false
 ```
 
-Use only when the target Dify version supports knowledge indexing in workflows.
+仅在目标 Dify 版本支持工作流中的知识库索引功能时使用。
 
 ## human-input / human-feedback
 
@@ -682,8 +664,7 @@ variables:
 selected: false
 ```
 
-These nodes are version-sensitive. Prefer copying an export from the target Dify
-workspace for production DSL.
+这些节点对版本敏感。生产环境 DSL 建议从目标 Dify 工作区的导出文件中复制。
 
 ## trigger-schedule
 
@@ -699,9 +680,7 @@ cron_expression: ""
 selected: false
 ```
 
-Schedule triggers support `mode: visual` or `mode: cron`; visual frequency can be
-`hourly`, `daily`, `weekly`, or `monthly`. Official export resets schedule config,
-so copy from a current workspace export for production use.
+定时触发支持 `mode: visual`（可视化）或 `mode: cron`（表达式）；可视化频率可选 `hourly`、`daily`、`weekly` 或 `monthly`。官方导出会重置调度配置，生产环境请从当前工作区导出文件复制。
 
 ## trigger-webhook
 
@@ -722,8 +701,7 @@ variables: []
 selected: false
 ```
 
-Official export clears webhook URLs. Keep them empty in public DSL and let the
-target workspace generate or configure them after import.
+官方导出会清空 webhook URL。公开 DSL 中请留空，由目标工作区在导入后生成或配置。
 
 ## trigger-plugin
 
@@ -744,9 +722,7 @@ config: {}
 selected: false
 ```
 
-Official export clears `subscription_id`. Plugin triggers are highly
-plugin-specific; use a fresh minimal export from the target Dify workspace before
-claiming production reliability.
+官方导出会清空 `subscription_id`。插件触发器高度依赖具体插件；如需保证生产可靠性，请从目标 Dify 工作区获取最新的最小导出文件。
 
 ## custom-note
 
@@ -762,5 +738,4 @@ height: 120
 selected: false
 ```
 
-The node wrapper is `type: custom-note`. Notes are valid non-executable canvas
-annotations and may have an empty `data.type`.
+节点 wrapper type 为 `custom-note`。注释是有效的非执行画布标注，`data.type` 可以为空。

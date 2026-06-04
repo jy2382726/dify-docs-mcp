@@ -10,13 +10,7 @@ kind: app
 version: "0.6.0"
 dependencies: []
 workflow:
-  conversation_variables:
-    - description: "检索到的知识片段总数"
-      id: "cv-cite-count"
-      name: CiteCount
-      selector: [conversation, CiteCount]
-      value: 0
-      value_type: number
+  conversation_variables: []
   environment_variables:
     - description: "默认检索 top_k 值"
       id: "ev-top-k"

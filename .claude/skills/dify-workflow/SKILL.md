@@ -9,9 +9,9 @@ description: >
 
 # Dify Workflow DSL
 
-Use this skill to produce import-ready Dify DSL YAML. Dify calls the exported
-workflow file a DSL; it is a YAML app definition with app metadata, dependencies,
-workflow variables/features, and a ReactFlow-like graph of nodes and edges.
+使用此技能生成可导入 Dify 的 DSL YAML。Dify 将导出的工作流文件称为 DSL，
+它是一个 YAML 应用定义，包含 app 元数据、依赖、工作流变量/功能，以及类似
+ReactFlow 的节点和边图。
 
 ## Core Workflow
 
@@ -32,11 +32,11 @@ workflow variables/features, and a ReactFlow-like graph of nodes and edges.
 
 从自然语言需求创建工作流时，确认以下 5 项：
 
-- **Mode**：默认 `workflow`；Chatflow 用 `advanced-chat`
-- **Trigger**：start variables / chat input / schedule / webhook / plugin event
-- **Inputs**：text / files / JSON / form fields / dataset IDs / tool credentials
-- **Output**：end values / answer / side-effect tool / generated file
-- **Shape**：straight-line / branch / extractor / RAG / iteration / agent
+- **模式**：默认 `workflow`；Chatflow 用 `advanced-chat`
+- **触发方式**：start 变量 / 聊天输入 / 定时 / Webhook / 插件事件
+- **输入**：文本 / 文件 / JSON / 表单字段 / 数据集 ID / 工具凭据
+- **输出**：end 值 / answer / 副作用工具 / 生成文件
+- **图形状**：直线 / 分支 / 提取器 / RAG / 迭代 / Agent
 
 详细模式和触发器选择：`references/usecase-node-selection.md`
 
@@ -122,7 +122,7 @@ workflow:
               required: true
               max_length: 50000
           selected: false
-        id: "1770000000000"
+        id: "start_1"
         position: { x: 100, y: 300 }
         positionAbsolute: { x: 100, y: 300 }
         selected: false
@@ -145,14 +145,14 @@ workflow:
               text: "你是一个精确的摘要助手。"
             - id: 9e05cb8e-0000-4000-9000-000000000002
               role: user
-              text: "请为以下文本生成摘要：\n\n{{#1770000000000.input_text#}}"
+              text: "请为以下文本生成摘要：\n\n{{#start_1.input_text#}}"
           context:
             enabled: false
             variable_selector: []
           vision:
             enabled: false
           selected: false
-        id: "1770000000001"
+        id: "llm_1"
         position: { x: 400, y: 300 }
         positionAbsolute: { x: 400, y: 300 }
         selected: false
@@ -165,9 +165,9 @@ workflow:
           type: end
           outputs:
             - variable: summary
-              value_selector: ["1770000000001", text]
+              value_selector: ["llm_1", text]
           selected: false
-        id: "1770000000002"
+        id: "end_1"
         position: { x: 700, y: 300 }
         positionAbsolute: { x: 700, y: 300 }
         selected: false
@@ -181,11 +181,11 @@ workflow:
           isInIteration: false
           sourceType: start
           targetType: llm
-        id: 1770000000000-source-1770000000001-target
+        id: start_1-source-llm_1-target
         selected: false
-        source: "1770000000000"
+        source: "start_1"
         sourceHandle: source
-        target: "1770000000001"
+        target: "llm_1"
         targetHandle: target
         type: custom
         zIndex: 0
@@ -195,11 +195,11 @@ workflow:
           isInIteration: false
           sourceType: llm
           targetType: end
-        id: 1770000000001-source-1770000000002-target
+        id: llm_1-source-end_1-target
         selected: false
-        source: "1770000000001"
+        source: "llm_1"
         sourceHandle: source
-        target: "1770000000002"
+        target: "end_1"
         targetHandle: target
         type: custom
         zIndex: 0
@@ -218,7 +218,7 @@ workflow:
 | `examples/chatflow-multi-turn.yaml` | advanced-chat | 多轮对话 Chatflow |
 | `examples/conditional-branch.yaml` | workflow | 条件分支工作流 |
 
-## Validation Checklist
+## 校验清单
 
 校验 DSL 前：
 
@@ -290,8 +290,8 @@ Reference 文件按 3 层组织，按需加载：
 4. 不确定的配置返回 warning，不报错
 5. 告知用户："MCP 不可用，使用本地 reference，生成的 DSL 需要 Dify 导入测试"
 
-## Useful Commands
+## 常用命令
 
 - `python3 .claude/skills/dify-workflow/scripts/validate_dsl.py <file.yaml>` — 校验 DSL
-- `rg -i "keyword" .claude/skills/dify-workflow/references/` — 搜索 reference
+- `rg -i "keyword" .claude/skills/dify-workflow/references/` — 搜索 reference 文件
 - `cat .claude/skills/dify-workflow/references/templates/<template>.yaml` — 查看模板

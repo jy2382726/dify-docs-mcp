@@ -167,13 +167,6 @@ workflow:
                 variable_selector: ["llm_classifier", text]
             id: "true"
             logical_operator: and
-        conditions:
-          - comparison_operator: contains
-            id: "cond-001"
-            value: "text"
-            variable_selector: ["llm_classifier", text]
-        logical_operator: and
-        desc: ""
       height: 126
       id: "if_branch"
       position: { x: 638, y: 300 }

@@ -3,7 +3,7 @@
 用于正确生成变量引用 `{{#node_id.field#}}` 中的 field 部分。
 
 ## start
-无输出字段（变量通过 start node 的 variables 定义）
+无输出字段（变量通过 start 节点的 variables 定义）
 
 ## llm
 | 字段 | 类型 | 说明 |
@@ -79,3 +79,20 @@
 | `text` | string | Agent 生成的文本 |
 | `usage` | object | Token 用量 |
 | `finish_reason` | string | 结束原因 |
+
+## template-transform
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `output` | string | 模板渲染后的文本 |
+
+## question-classifier
+无输出字段（通过 class ID 分流）
+
+## list-operator
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `result` | array | 列表操作结果 |
+| `first_record` | any | 第一条记录 |
+
+## assigner
+无输出字段（写入 conversation/environment 变量）
