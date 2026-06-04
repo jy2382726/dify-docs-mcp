@@ -104,10 +104,16 @@ variables:
 outputs:
   result:
     type: object
+    children: null
+desc: ""
 selected: false
 ```
 
-函数必须命名为 `main`；返回值必须是 dict，且 key 与 `outputs` 中定义的字段匹配。
+**关键要点**：
+- `code` 字段必须使用 YAML 多行字符串格式 `|`，不要使用单行转义字符串（会导致 Dify 前端渲染失败）
+- `outputs` 中每个字段需要 `children: null`
+- 需要 `desc: ""` 字段（即使为空）
+- 函数必须命名为 `main`；返回值必须是 dict，且 key 与 `outputs` 中定义的字段匹配
 
 ## if-else
 
@@ -127,9 +133,46 @@ cases:
 selected: false
 ```
 
-分支边的 `sourceHandle` 必须与目标 case 的 ID 一致。
+**关键要点**：
+- 分支边的 `sourceHandle` 必须与目标 case 的 ID 一致
+- Dify 的 IF/ELSE **只支持两个分支**：`true` 和 `false`
+- 常用比较运算符：`contains`、`not contains`、`is`、`is not`、`empty`、`not empty`、`start with`、`end with`、`=`、`≠`、`>`、`<`、`≥`、`≤`
 
-常用比较运算符：`contains`、`not contains`、`is`、`is not`、`empty`、`not empty`、`start with`、`end with`、`=`、`≠`、`>`、`<`、`≥`、`≤`。
+**多分支实现方式**：
+
+当需要超过 2 个分支时（如 A/B/C/D），需要串联多个 IF/ELSE 节点：
+
+```
+                  ┌─ YES → 分支A处理
+                  │
+起始 → 是否A？ ──┤
+                  │
+                  └─ NO → 是否B？ ──┬─ YES → 分支B处理
+                                     │
+                                     └─ NO → 是否C？ ──┬─ YES → 分支C处理
+                                                        │
+                                                        └─ NO → 分支D处理（默认）
+```
+
+**边连接示例**（3 分支）：
+```yaml
+edges:
+  # 第一个 IF/ELSE：true 分支走 A，false 走下一个判断
+  - source: "router_A"
+    sourceHandle: "true"
+    target: "branch_A"
+  - source: "router_A"
+    sourceHandle: "false"
+    target: "router_B"
+
+  # 第二个 IF/ELSE：true 分支走 B，false 走 C
+  - source: "router_B"
+    sourceHandle: "true"
+    target: "branch_B"
+  - source: "router_B"
+    sourceHandle: "false"
+    target: "branch_C"
+```
 
 ## question-classifier
 
@@ -200,16 +243,27 @@ body:
       value: "{{#1770000000000.input_text#}}"
 authorization:
   type: no-auth
+  config: null
 timeout:
-  connect: 10
-  read: 60
-  write: 10
+  max_connect_timeout: 10
+  max_read_timeout: 60
+  max_write_timeout: 10
 retry_config:
   retry_enabled: false
 selected: false
 ```
 
-常用输出字段：`body`、`status_code`、`headers`、`files`。
+**无请求体时的格式**：
+```yaml
+body:
+  type: none
+  data: []
+```
+
+**关键要点**：
+- `authorization` 需要 `config: null` 字段
+- `timeout` 字段名是 `max_connect_timeout`、`max_read_timeout`、`max_write_timeout`
+- 常用输出字段：`body`、`status_code`、`headers`、`files`
 
 ## template-transform
 

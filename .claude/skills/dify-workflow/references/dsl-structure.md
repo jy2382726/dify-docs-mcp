@@ -103,6 +103,32 @@ workflow:
 
 新生成的 DSL 优先使用 `workflow` 或 `advanced-chat`。默认使用 `workflow`，除非用户需要 Chatflow 行为，如多轮记忆、`sys.query`、`sys.files` 或流式应答。
 
+**advanced-chat 模式的多分支模式**：
+
+在 `advanced-chat` 模式下，当工作流有多个分支时，**每个分支应该有独立的 `answer` 节点**，而不是汇聚到单个 `answer` 节点。这是 Dify Chatflow 的标准模式。
+
+```
+                 ┌─ 分支A处理 → Answer_A
+                 │
+起始 → 路由判断 ─┼─ 分支B处理 → Answer_B
+                 │
+                 └─ 分支C处理 → Answer_C
+```
+
+**错误示例**（会导致渲染问题）：
+```
+分支A处理 ─┐
+分支B处理 ─┼─ 单个Answer（引用多个互斥变量）
+分支C处理 ─┘
+```
+
+**正确示例**：
+```
+分支A处理 → Answer_A（只引用分支A的输出）
+分支B处理 → Answer_B（只引用分支B的输出）
+分支C处理 → Answer_C（只引用分支C的输出）
+```
+
 ## 依赖
 
 官方 Dify 应用 DSL 依赖类型可以是 `marketplace`、`package` 或 `github`。远程插件无法通过官方 Dify 导出逻辑导出。
@@ -213,7 +239,6 @@ dependencies:
     sourceType: start
     targetType: llm
   id: 1770000000000-source-1770000000001-target
-  selected: false
   source: "1770000000000"
   sourceHandle: source
   target: "1770000000001"
@@ -228,6 +253,10 @@ Handle 约定：
 - `if-else`：source handle 为分支 ID（`"true"`、`"false"` 或 UUID）
 - `question-classifier`：source handle 为分类 ID（`"1"`、`"2"`、...）
 - 迭代/循环内部：当 Dify 导出时包含 `isInIteration` 或 `isInLoop` 以及父节点 ID 字段
+
+**重要提示**：边的 `data.sourceType` 和 `data.targetType` 必须与源节点和目标节点的 `data.type` 一致。例如：
+- 源节点 `data.type: if-else` → 边的 `sourceType: if-else`
+- 目标节点 `data.type: code` → 边的 `targetType: code`
 
 ## 变量引用
 

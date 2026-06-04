@@ -226,8 +226,20 @@ def validate_node(report: Report, node_id: str, data: dict[str, Any]) -> None:
             code,
         ):
             report.error(f"JavaScript code node {node_id} ({title}) must define main(...).")
+        # Check if code uses single-line escape format (common cause of Dify rendering failure)
+        if isinstance(code, str) and "\\n" in code and "\n" not in code:
+            report.warn(f"Code node {node_id} ({title}) uses single-line escape format. Use YAML multiline '|' format to avoid rendering issues.")
         if not isinstance(data.get("outputs"), dict):
             report.error(f"Code node {node_id} ({title}) missing outputs mapping.")
+        else:
+            # Check for children: null in outputs
+            outputs = data.get("outputs")
+            if isinstance(outputs, dict):
+                for key, value in outputs.items():
+                    if isinstance(value, dict) and "children" not in value:
+                        report.warn(f"Code node {node_id} ({title}) output '{key}' missing 'children: null'.")
+        if "desc" not in data:
+            report.warn(f"Code node {node_id} ({title}) missing 'desc' field.")
 
     elif node_type == "tool":
         required = ["provider_id", "provider_name", "provider_type", "tool_name", "tool_parameters"]
