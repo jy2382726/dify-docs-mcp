@@ -47,13 +47,13 @@
 **Files:**
 - Create: `/tmp/yzmw123-skill/` (临时目录)
 
-- [ ] **Step 1: 克隆 yzmw123 仓库**
+- [x] **Step 1: 克隆 yzmw123 仓库**
 
 ```bash
 git clone https://github.com/yzmw123/dify-workflow-dsl-skill.git /tmp/yzmw123-skill
 ```
 
-- [ ] **Step 2: 验证关键文件存在**
+- [x] **Step 2: 验证关键文件存在**
 
 ```bash
 ls -la /tmp/yzmw123-skill/SKILL.md /tmp/yzmw123-skill/references/ /tmp/yzmw123-skill/scripts/validate_dsl.py
@@ -61,7 +61,7 @@ ls -la /tmp/yzmw123-skill/SKILL.md /tmp/yzmw123-skill/references/ /tmp/yzmw123-s
 
 Expected: 三个路径均存在
 
-- [ ] **Step 3: 读取 SKILL.md 确认内容完整性**
+- [x] **Step 3: 读取 SKILL.md 确认内容完整性**
 
 ```bash
 wc -l /tmp/yzmw123-skill/SKILL.md
@@ -69,7 +69,7 @@ wc -l /tmp/yzmw123-skill/SKILL.md
 
 Expected: > 100 行
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 # 无需 commit，临时目录
@@ -84,19 +84,19 @@ Expected: > 100 行
 **Files:**
 - Create: `.claude/skills/dify-workflow/SKILL.md`
 
-- [ ] **Step 1: 创建目录结构**
+- [x] **Step 1: 创建目录结构**
 
 ```bash
 mkdir -p .claude/skills/dify-workflow/{references,scripts,examples}
 ```
 
-- [ ] **Step 2: 读取 yzmw123 的 SKILL.md 作为基座**
+- [x] **Step 2: 读取 yzmw123 的 SKILL.md 作为基座**
 
 ```bash
 cat /tmp/yzmw123-skill/SKILL.md
 ```
 
-- [ ] **Step 3: 创建适配后的 SKILL.md**
+- [x] **Step 3: 创建适配后的 SKILL.md**
 
 基于 yzmw123 的 SKILL.md，做以下适配：
 
@@ -142,7 +142,7 @@ description: >
 4. 对于不确定的配置，返回 warning 而非 error
 ```
 
-- [ ] **Step 4: 验证 SKILL.md 包含 frontmatter**
+- [x] **Step 4: 验证 SKILL.md 包含 frontmatter**
 
 ```bash
 head -5 .claude/skills/dify-workflow/SKILL.md | grep -q "name: dify-workflow-dsl" && echo "OK" || echo "FAIL"
@@ -150,7 +150,7 @@ head -5 .claude/skills/dify-workflow/SKILL.md | grep -q "name: dify-workflow-dsl
 
 Expected: OK
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/SKILL.md
@@ -166,19 +166,19 @@ git commit -m "feat: create SKILL.md adapted from yzmw123"
 **Files:**
 - Create: `.claude/skills/dify-workflow/references/node-schemas.md`
 
-- [ ] **Step 1: 读取 yzmw123 的 node-schemas.md**
+- [x] **Step 1: 读取 yzmw123 的 node-schemas.md**
 
 ```bash
 cat /tmp/yzmw123-skill/references/node-schemas.md
 ```
 
-- [ ] **Step 2: 复制到目标位置**
+- [x] **Step 2: 复制到目标位置**
 
 ```bash
 cp /tmp/yzmw123-skill/references/node-schemas.md .claude/skills/dify-workflow/references/node-schemas.md
 ```
 
-- [ ] **Step 3: 补充缺失的扩展节点**
+- [x] **Step 3: 补充缺失的扩展节点**
 
 在文件末尾追加以下扩展节点的 Schema（从 Dify 源码 entities.py 提取）：
 - `agent` — Agent 节点
@@ -189,7 +189,7 @@ cp /tmp/yzmw123-skill/references/node-schemas.md .claude/skills/dify-workflow/re
 
 每个节点包含：参数定义、类型约束、配置示例（YAML）。
 
-- [ ] **Step 4: 验证节点数量**
+- [x] **Step 4: 验证节点数量**
 
 ```bash
 grep -c "^### " .claude/skills/dify-workflow/references/node-schemas.md
@@ -197,7 +197,7 @@ grep -c "^### " .claude/skills/dify-workflow/references/node-schemas.md
 
 Expected: >= 25
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/node-schemas.md
@@ -213,19 +213,19 @@ git commit -m "feat: adapt node-schemas.md with 25+ node types"
 **Files:**
 - Create: `.claude/skills/dify-workflow/references/dsl-structure.md`
 
-- [ ] **Step 1: 读取 yzmw123 的 dsl-structure.md**
+- [x] **Step 1: 读取 yzmw123 的 dsl-structure.md**
 
 ```bash
 cat /tmp/yzmw123-skill/references/dsl-structure.md
 ```
 
-- [ ] **Step 2: 复制到目标位置**
+- [x] **Step 2: 复制到目标位置**
 
 ```bash
 cp /tmp/yzmw123-skill/references/dsl-structure.md .claude/skills/dify-workflow/references/dsl-structure.md
 ```
 
-- [ ] **Step 3: 验证内容包含版本说明**
+- [x] **Step 3: 验证内容包含版本说明**
 
 ```bash
 grep -q "0.6.0" .claude/skills/dify-workflow/references/dsl-structure.md && echo "OK" || echo "FAIL"
@@ -233,7 +233,7 @@ grep -q "0.6.0" .claude/skills/dify-workflow/references/dsl-structure.md && echo
 
 Expected: OK
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/dsl-structure.md
@@ -249,13 +249,13 @@ git commit -m "feat: adapt dsl-structure.md from yzmw123"
 **Files:**
 - Create: `.claude/skills/dify-workflow/references/variable-syntax.md`
 
-- [ ] **Step 1: 从 yzmw123 SKILL.md 提取变量语法内容**
+- [x] **Step 1: 从 yzmw123 SKILL.md 提取变量语法内容**
 
 ```bash
 grep -A 50 "variable_selector\|value_selector\|{{#" /tmp/yzmw123-skill/SKILL.md
 ```
 
-- [ ] **Step 2: 创建 variable-syntax.md**
+- [x] **Step 2: 创建 variable-syntax.md**
 
 内容包括：
 
@@ -316,7 +316,7 @@ grep -A 50 "variable_selector\|value_selector\|{{#" /tmp/yzmw123-skill/SKILL.md
 3. 引用不存在的节点 — 会导致导入后运行时错误
 ```
 
-- [ ] **Step 3: 验证 rag 前缀存在**
+- [x] **Step 3: 验证 rag 前缀存在**
 
 ```bash
 grep -q "rag" .claude/skills/dify-workflow/references/variable-syntax.md && echo "OK" || echo "FAIL"
@@ -324,7 +324,7 @@ grep -q "rag" .claude/skills/dify-workflow/references/variable-syntax.md && echo
 
 Expected: OK
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/variable-syntax.md
@@ -340,7 +340,7 @@ git commit -m "feat: create variable-syntax.md with rag prefix"
 **Files:**
 - Create: `.claude/skills/dify-workflow/references/node-output-fields.md`
 
-- [ ] **Step 1: 创建 node-output-fields.md**
+- [x] **Step 1: 创建 node-output-fields.md**
 
 从 Dify 源码和 r-hashi01 项目提取各节点的输出字段名：
 
@@ -428,7 +428,7 @@ git commit -m "feat: create variable-syntax.md with rag prefix"
 | `finish_reason` | string | 结束原因 |
 ```
 
-- [ ] **Step 2: 验证节点数量**
+- [x] **Step 2: 验证节点数量**
 
 ```bash
 grep -c "^## " .claude/skills/dify-workflow/references/node-output-fields.md
@@ -436,7 +436,7 @@ grep -c "^## " .claude/skills/dify-workflow/references/node-output-fields.md
 
 Expected: >= 10
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/node-output-fields.md
@@ -452,7 +452,7 @@ git commit -m "feat: create node-output-fields.md with 14 node types"
 **Files:**
 - Create: `.claude/skills/dify-workflow/references/validation-rules.md`
 
-- [ ] **Step 1: 从 yzmw123 的 validate_dsl.py 提取校验规则**
+- [x] **Step 1: 从 yzmw123 的 validate_dsl.py 提取校验规则**
 
 ```bash
 grep -E "report\.(error|warn)" /tmp/yzmw123-skill/scripts/validate_dsl.py | wc -l
@@ -460,7 +460,7 @@ grep -E "report\.(error|warn)" /tmp/yzmw123-skill/scripts/validate_dsl.py | wc -
 
 Expected: >= 15
 
-- [ ] **Step 2: 创建 validation-rules.md**
+- [x] **Step 2: 创建 validation-rules.md**
 
 基于 validate_dsl.py 中的规则，编写人类可读的校验规则文档：
 
@@ -511,7 +511,7 @@ Claude Code 生成 DSL 后，按此 checklist 逐项检查：
 3. 校验通过后交付 DSL；发现错误时自动修复后重新输出
 ```
 
-- [ ] **Step 3: 验证规则数量**
+- [x] **Step 3: 验证规则数量**
 
 ```bash
 grep -c "| [0-9]" .claude/skills/dify-workflow/references/validation-rules.md
@@ -519,7 +519,7 @@ grep -c "| [0-9]" .claude/skills/dify-workflow/references/validation-rules.md
 
 Expected: >= 15
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/validation-rules.md
@@ -535,7 +535,7 @@ git commit -m "feat: create validation-rules.md with 16+ rules"
 **Files:**
 - Create: `.claude/skills/dify-workflow/references/mcp-usage-guide.md`
 
-- [ ] **Step 1: 创建 mcp-usage-guide.md**
+- [x] **Step 1: 创建 mcp-usage-guide.md**
 
 ```markdown
 # Mintlify MCP 使用指引
@@ -589,7 +589,7 @@ query_docs_filesystem_dify_docs(command="rg 'variable' /en/use-dify/nodes/")
 4. 不报错，确保 Skill 功能 100% 可用
 ```
 
-- [ ] **Step 2: 验证两个工具都有说明**
+- [x] **Step 2: 验证两个工具都有说明**
 
 ```bash
 grep -q "search_dify_docs" .claude/skills/dify-workflow/references/mcp-usage-guide.md && \
@@ -599,7 +599,7 @@ echo "OK" || echo "FAIL"
 
 Expected: OK
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/mcp-usage-guide.md
@@ -621,7 +621,7 @@ git commit -m "feat: create mcp-usage-guide.md with tool docs and fallback"
 - Create: `.claude/skills/dify-workflow/references/templates/iteration.yaml`
 - Create: `.claude/skills/dify-workflow/references/templates/error-handling.yaml`
 
-- [ ] **Step 1: 从 yzmw123 提取 4 个模板**
+- [x] **Step 1: 从 yzmw123 提取 4 个模板**
 
 ```bash
 cat /tmp/yzmw123-skill/references/complete-examples.md
@@ -633,7 +633,7 @@ cat /tmp/yzmw123-skill/references/complete-examples.md
 - http-code.yaml（HTTP 请求 + 代码处理）
 - chatflow-multi-turn.yaml（Chatflow 多轮对话）
 
-- [ ] **Step 2: 创建 4 个基础模板**
+- [x] **Step 2: 创建 4 个基础模板**
 
 每个模板必须包含完整的 DSL YAML 结构：
 - `version: "0.6.0"`
@@ -642,7 +642,7 @@ cat /tmp/yzmw123-skill/references/complete-examples.md
 - `workflow.graph.nodes`
 - `workflow.graph.edges`
 
-- [ ] **Step 3: 创建 3 个补充模板（rag-retrieval.yaml）**
+- [x] **Step 3: 创建 3 个补充模板（rag-retrieval.yaml）**
 
 ```yaml
 version: "0.6.0"
@@ -705,15 +705,15 @@ workflow:
         targetHandle: "target"
 ```
 
-- [ ] **Step 4: 创建 iteration.yaml**
+- [x] **Step 4: 创建 iteration.yaml**
 
 迭代处理列表的模板，包含 iteration 节点。
 
-- [ ] **Step 5: 创建 error-handling.yaml**
+- [x] **Step 5: 创建 error-handling.yaml**
 
 错误处理模式模板，包含 try-catch 或 if-else 分支。
 
-- [ ] **Step 6: 验证模板数量**
+- [x] **Step 6: 验证模板数量**
 
 ```bash
 ls .claude/skills/dify-workflow/references/templates/*.yaml | wc -l
@@ -721,7 +721,7 @@ ls .claude/skills/dify-workflow/references/templates/*.yaml | wc -l
 
 Expected: 7
 
-- [ ] **Step 7: 验证每个模板是合法 YAML**
+- [x] **Step 7: 验证每个模板是合法 YAML**
 
 ```bash
 for f in .claude/skills/dify-workflow/references/templates/*.yaml; do
@@ -731,7 +731,7 @@ done
 
 Expected: 7 个 OK
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/references/templates/
@@ -747,25 +747,25 @@ git commit -m "feat: create 7 workflow templates (4 from yzmw123 + 3 new)"
 **Files:**
 - Create: `.claude/skills/dify-workflow/scripts/validate_dsl.py`
 
-- [ ] **Step 1: 读取 yzmw123 的 validate_dsl.py**
+- [x] **Step 1: 读取 yzmw123 的 validate_dsl.py**
 
 ```bash
 cat /tmp/yzmw123-skill/scripts/validate_dsl.py
 ```
 
-- [ ] **Step 2: 复制到目标位置**
+- [x] **Step 2: 复制到目标位置**
 
 ```bash
 cp /tmp/yzmw123-skill/scripts/validate_dsl.py .claude/skills/dify-workflow/scripts/validate_dsl.py
 ```
 
-- [ ] **Step 3: 安装 PyYAML 依赖**
+- [x] **Step 3: 安装 PyYAML 依赖**
 
 ```bash
 source .venv/bin/activate && pip install pyyaml
 ```
 
-- [ ] **Step 4: 验证脚本可执行**
+- [x] **Step 4: 验证脚本可执行**
 
 ```bash
 python3 .claude/skills/dify-workflow/scripts/validate_dsl.py --help
@@ -773,7 +773,7 @@ python3 .claude/skills/dify-workflow/scripts/validate_dsl.py --help
 
 Expected: 显示 argparse 帮助信息
 
-- [ ] **Step 5: 用模板测试校验脚本**
+- [x] **Step 5: 用模板测试校验脚本**
 
 ```bash
 python3 .claude/skills/dify-workflow/scripts/validate_dsl.py .claude/skills/dify-workflow/references/templates/*.yaml
@@ -781,7 +781,7 @@ python3 .claude/skills/dify-workflow/scripts/validate_dsl.py .claude/skills/dify
 
 Expected: 每个模板输出 OK 或仅有 warning（无 error）
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/scripts/validate_dsl.py
@@ -799,7 +799,7 @@ git commit -m "feat: adapt validate_dsl.py from yzmw123"
 - Create: `.claude/skills/dify-workflow/examples/conditional-branch.yaml`
 - Create: `.claude/skills/dify-workflow/examples/chatflow-multi-turn.yaml`
 
-- [ ] **Step 1: 创建 rag-workflow.yaml**
+- [x] **Step 1: 创建 rag-workflow.yaml**
 
 基于 templates/rag-retrieval.yaml，扩展为完整的工作流：
 - start → knowledge-retrieval → llm → end
@@ -807,21 +807,21 @@ git commit -m "feat: adapt validate_dsl.py from yzmw123"
 - 包含 conversation_variables
 - 包含 dependencies
 
-- [ ] **Step 2: 创建 conditional-branch.yaml**
+- [x] **Step 2: 创建 conditional-branch.yaml**
 
 基于 templates/if-else-branch.yaml，扩展为完整的工作流：
 - start → llm(classifier) → if-else → [branch_a: llm, branch_b: http] → end
 - 包含完整的 sourceHandle（true/false）
 - 包含环境变量
 
-- [ ] **Step 3: 创建 chatflow-multi-turn.yaml**
+- [x] **Step 3: 创建 chatflow-multi-turn.yaml**
 
 基于 templates/chatflow-multi-turn.yaml，扩展为完整的工作流：
 - start → llm → answer
 - 包含 conversation_variables（history）
 - 包含 memory 配置
 
-- [ ] **Step 4: 用 validate_dsl.py 校验所有示例**
+- [x] **Step 4: 用 validate_dsl.py 校验所有示例**
 
 ```bash
 python3 .claude/skills/dify-workflow/scripts/validate_dsl.py .claude/skills/dify-workflow/examples/*.yaml
@@ -829,7 +829,7 @@ python3 .claude/skills/dify-workflow/scripts/validate_dsl.py .claude/skills/dify
 
 Expected: 每个文件输出 OK 或仅有 warning（无 error）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/dify-workflow/examples/
@@ -845,7 +845,7 @@ git commit -m "feat: add 3 integration test workflow examples"
 **Files:**
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: 更新 CLAUDE.md 的项目结构段落**
+- [x] **Step 1: 更新 CLAUDE.md 的项目结构段落**
 
 在 CLAUDE.md 的项目结构中，将 `.claude/skills/dify-workflow/` 展开说明：
 
@@ -859,7 +859,7 @@ git commit -m "feat: add 3 integration test workflow examples"
   - `examples/` — 集成测试示例
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add CLAUDE.md
@@ -897,3 +897,14 @@ Task 12 (更新 CLAUDE.md) ────── 依赖 Task 2-11
 - Group B（无依赖）：Task 6, 8
 - Group C（依赖 Group A）：Task 9
 - Group D（依赖全部）：Task 11, 12
+
+---
+
+## 实施完成记录（2026-06-04）
+
+全部 12 个 Task 已完成。后续经历两轮技能评估修复（见 commit `bf4e2a2` 和 `0db3fae`），补充了：
+- 全部 reference 文件中文化
+- iteration/loop 完整内部结构示例
+- MCP 降级触发判断逻辑
+- validation 错误→修复模式表
+- 示例 ID 风格统一和字段清理
