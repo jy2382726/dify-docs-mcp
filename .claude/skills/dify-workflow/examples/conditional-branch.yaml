@@ -1,0 +1,267 @@
+app:
+  name: "Conditional Branch Workflow"
+  description: "条件分支工作流：根据内容类型分类，走不同处理分支"
+  icon: "🔀"
+  icon_type: emoji
+  icon_background: "#D1E9FF"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - description: "API 请求超时（秒）"
+      id: "ev-timeout"
+      name: API_TIMEOUT
+      value_type: number
+      value: "30"
+  features:
+    file_upload:
+      image:
+        enabled: false
+      enabled: false
+    opening_statement: ""
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: llm
+      id: start_1-source-llm_classifier-target
+      source: "start_1"
+      sourceHandle: source
+      target: "llm_classifier"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: if-else
+      id: llm_classifier-source-if_branch-target
+      source: "llm_classifier"
+      sourceHandle: source
+      target: "if_branch"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: llm
+      id: if_branch-true-llm_summary-target
+      source: "if_branch"
+      sourceHandle: "true"
+      target: "llm_summary"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: http-request
+      id: if_branch-false-http_call-target
+      source: "if_branch"
+      sourceHandle: "false"
+      target: "http_call"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: end
+      id: llm_summary-source-end_1-target
+      source: "llm_summary"
+      sourceHandle: source
+      target: "end_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: end
+      id: http_call-source-end_2-target
+      source: "http_call"
+      sourceHandle: source
+      target: "end_2"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        title: "Start"
+        type: start
+        variables:
+          - label: "Input Content"
+            variable: content
+            type: paragraph
+            required: true
+            max_length: 10000
+      height: 120
+      id: "start_1"
+      position: { x: 30, y: 300 }
+      positionAbsolute: { x: 30, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Classifier"
+        type: llm
+        model:
+          provider: deepseek
+          name: deepseek-chat
+          mode: chat
+          completion_params:
+            temperature: 0.1
+        prompt_template:
+          - id: "cls-sys-001"
+            role: system
+            text: >-
+              You are a content classifier. Analyze the input and classify it
+              as either "text" or "code". Reply with ONLY the single word:
+              "text" or "code". No other text.
+          - id: "cls-user-001"
+            role: user
+            text: "{{#start_1.content#}}"
+        context:
+          enabled: false
+          variable_selector: []
+        variables: []
+        vision:
+          enabled: false
+        selected: false
+      height: 98
+      id: "llm_classifier"
+      position: { x: 334, y: 300 }
+      positionAbsolute: { x: 334, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Branch by Type"
+        type: if-else
+        cases:
+          - case_id: "true"
+            conditions:
+              - comparison_operator: contains
+                id: "cond-001"
+                value: "text"
+                varType: string
+                variable_selector: ["llm_classifier", text]
+            id: "true"
+            logical_operator: and
+        conditions:
+          - comparison_operator: contains
+            id: "cond-001"
+            value: "text"
+            variable_selector: ["llm_classifier", text]
+        logical_operator: and
+        desc: ""
+      height: 126
+      id: "if_branch"
+      position: { x: 638, y: 300 }
+      positionAbsolute: { x: 638, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Summarize Text"
+        type: llm
+        model:
+          provider: deepseek
+          name: deepseek-chat
+          mode: chat
+          completion_params:
+            temperature: 0.7
+        prompt_template:
+          - id: "sum-sys-001"
+            role: system
+            text: "Summarize the following text in 2-3 sentences."
+          - id: "sum-user-001"
+            role: user
+            text: "{{#start_1.content#}}"
+        context:
+          enabled: false
+          variable_selector: []
+        variables: []
+        vision:
+          enabled: false
+        selected: false
+      height: 98
+      id: "llm_summary"
+      position: { x: 942, y: 200 }
+      positionAbsolute: { x: 942, y: 200 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Send to API"
+        type: http-request
+        authorization:
+          type: no-auth
+        headers: ""
+        method: post
+        params: ""
+        timeout:
+          max_connect_timeout: 10
+          max_read_timeout: 30
+          max_write_timeout: 10
+        url: "https://api.example.com/process"
+        body: '{"content": "{{#start_1.content#}}"}'
+        body_type: json
+      height: 98
+      id: "http_call"
+      position: { x: 942, y: 400 }
+      positionAbsolute: { x: 942, y: 400 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "End"
+        type: end
+        outputs:
+          - variable: summary
+            value_selector: ["llm_summary", text]
+      height: 90
+      id: "end_1"
+      position: { x: 1246, y: 200 }
+      positionAbsolute: { x: 1246, y: 200 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "End"
+        type: end
+        outputs:
+          - variable: api_result
+            value_selector: ["http_call", body]
+      height: 90
+      id: "end_2"
+      position: { x: 1246, y: 400 }
+      positionAbsolute: { x: 1246, y: 400 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport: { x: 50, y: 150, zoom: 0.7 }

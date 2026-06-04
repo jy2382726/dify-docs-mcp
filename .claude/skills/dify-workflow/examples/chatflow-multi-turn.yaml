@@ -1,0 +1,196 @@
+app:
+  name: "Multi-Turn Chat Assistant"
+  description: "多轮对话工作流：带记忆的智能助手"
+  icon: "💬"
+  icon_type: emoji
+  icon_background: "#FFEAD5"
+  mode: advanced-chat
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables:
+    - description: "对话历史记录"
+      id: "cv-history"
+      name: History
+      selector: [conversation, History]
+      value: []
+      value_type: array[string]
+    - description: "对话轮次计数"
+      id: "cv-turn-count"
+      name: TurnCount
+      selector: [conversation, TurnCount]
+      value: 0
+      value_type: number
+  environment_variables: []
+  features:
+    file_upload:
+      image:
+        enabled: false
+      enabled: false
+    opening_statement: "你好！我是多轮对话助手，请问有什么可以帮你的？"
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+      - "介绍一下你自己"
+      - "今天天气怎么样？"
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: llm
+      id: start_1-source-llm_1-target
+      source: "start_1"
+      sourceHandle: source
+      target: "llm_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: llm_1-source-answer_1-target
+      source: "llm_1"
+      sourceHandle: source
+      target: "answer_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: answer
+        targetType: template-transform
+      id: answer_1-source-template_1-target
+      source: "answer_1"
+      sourceHandle: source
+      target: "template_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: template-transform
+        targetType: assigner
+      id: template_1-source-assigner_1-target
+      source: "template_1"
+      sourceHandle: source
+      target: "assigner_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        title: "Start"
+        type: start
+        variables: []
+      height: 54
+      id: "start_1"
+      position: { x: 30, y: 300 }
+      positionAbsolute: { x: 30, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Generate Response"
+        type: llm
+        model:
+          provider: deepseek
+          name: deepseek-chat
+          mode: chat
+          completion_params:
+            temperature: 0.7
+        prompt_template:
+          - id: "chat-sys-001"
+            role: system
+            text: >-
+              You are a helpful assistant. Use the conversation history to
+              provide context-aware responses.
+
+              Conversation History:
+              {{#conversation.History#}}
+          - id: "chat-user-001"
+            role: user
+            text: "{{#sys.query#}}"
+        context:
+          enabled: false
+          variable_selector: []
+        variables: []
+        vision:
+          enabled: false
+        memory:
+          query_prompt_template: "{{#sys.query#}}"
+          role_prefix:
+            user: "user: "
+            assistant: "assistant: "
+          window:
+            enabled: true
+            size: 10
+        selected: false
+      height: 98
+      id: "llm_1"
+      position: { x: 334, y: 300 }
+      positionAbsolute: { x: 334, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Reply to User"
+        type: answer
+        answer: "{{#llm_1.text#}}"
+        variables: []
+      id: "answer_1"
+      position: { x: 638, y: 300 }
+      positionAbsolute: { x: 638, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Format History Entry"
+        type: template-transform
+        template: "user:{{ user_msg }}\nassistant:{{ assistant_msg }}"
+        variables:
+          - value_selector: [sys, query]
+            variable: user_msg
+          - value_selector: ["llm_1", text]
+            variable: assistant_msg
+      height: 54
+      id: "template_1"
+      position: { x: 942, y: 300 }
+      positionAbsolute: { x: 942, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Append to History"
+        type: assigner
+        version: "2"
+        items:
+          - input_type: variable
+            operation: append
+            value: ["template_1", output]
+            variable_selector: [conversation, History]
+            write_mode: over-write
+      height: 88
+      id: "assigner_1"
+      position: { x: 1246, y: 300 }
+      positionAbsolute: { x: 1246, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport: { x: 50, y: 200, zoom: 0.8 }

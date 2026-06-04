@@ -1,0 +1,152 @@
+app:
+  name: "RAG Knowledge Retrieval"
+  description: "Knowledge retrieval with context-aware answering"
+  icon: "📚"
+  icon_type: emoji
+  icon_background: "#E4FBCC"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      image:
+        enabled: false
+      enabled: false
+    opening_statement: ""
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: start_1-source-knowledge_1-target
+      source: "start_1"
+      sourceHandle: source
+      target: "knowledge_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: knowledge_1-source-llm_1-target
+      source: "knowledge_1"
+      sourceHandle: source
+      target: "llm_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: end
+      id: llm_1-source-end_1-target
+      source: "llm_1"
+      sourceHandle: source
+      target: "end_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        title: "Start"
+        type: start
+        variables:
+          - label: "Query"
+            variable: query
+            type: paragraph
+            required: true
+            max_length: 5000
+      height: 120
+      id: "start_1"
+      position: { x: 30, y: 300 }
+      positionAbsolute: { x: 30, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Knowledge Retrieval"
+        type: knowledge-retrieval
+        dataset_ids:
+          - "<DATASET_ID>"
+        query_variable_selector: ["start_1", "query"]
+        retrieval_mode: multiple
+        multiple_retrieval_config:
+          top_k: 4
+          reranking_enable: false
+          score_threshold_enabled: false
+          score_threshold: 0
+        metadata_filtering_mode: disabled
+        selected: false
+      height: 110
+      id: "knowledge_1"
+      position: { x: 334, y: 300 }
+      positionAbsolute: { x: 334, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Answer with Context"
+        type: llm
+        model:
+          provider: langgenius/tongyi/tongyi
+          name: qwen-max
+          mode: chat
+          completion_params:
+            temperature: 0.3
+        prompt_template:
+          - id: "rag-sys-001"
+            role: system
+            text: "Answer the user's question based on the context below. If the context does not contain enough information, say so.\n\nContext:\n{{#knowledge_1.result#}}"
+          - id: "rag-user-001"
+            role: user
+            text: "{{#start_1.query#}}"
+        context:
+          enabled: true
+          variable_selector: ["knowledge_1", "result"]
+        variables: []
+        vision:
+          enabled: false
+        selected: false
+      height: 98
+      id: "llm_1"
+      position: { x: 638, y: 300 }
+      positionAbsolute: { x: 638, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "End"
+        type: end
+        outputs:
+          - variable: answer
+            value_selector: ["llm_1", text]
+      height: 90
+      id: "end_1"
+      position: { x: 942, y: 300 }
+      positionAbsolute: { x: 942, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport: { x: 50, y: 200, zoom: 0.8 }

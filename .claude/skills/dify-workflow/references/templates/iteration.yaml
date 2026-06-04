@@ -1,0 +1,224 @@
+app:
+  name: "批量摘要"
+  description: "对输入列表中的每项内容生成摘要"
+  icon: "🔁"
+  icon_type: emoji
+  icon_background: "#E4FBCC"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      image:
+        enabled: false
+      enabled: false
+    opening_statement: ""
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: iteration
+      id: start_1-source-iteration_1-target
+      source: "start_1"
+      sourceHandle: source
+      target: "iteration_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        sourceType: iteration-start
+        targetType: llm
+      id: iteration_start_1-source-iter_llm_1-target
+      source: "iteration_start_1"
+      sourceHandle: source
+      target: "iter_llm_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        sourceType: llm
+        targetType: iteration-end
+      id: iter_llm_1-source-iteration_end_1-target
+      source: "iter_llm_1"
+      sourceHandle: source
+      target: "iteration_end_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: iteration
+        targetType: end
+      id: iteration_1-source-end_1-target
+      source: "iteration_1"
+      sourceHandle: source
+      target: "end_1"
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        title: "Start"
+        type: start
+        variables:
+          - label: "Text Items"
+            variable: text_items
+            type: paragraph
+            required: true
+            max_length: 50000
+        desc: "Enter a JSON array of strings, e.g. [\"item1\", \"item2\"]"
+      height: 120
+      id: "start_1"
+      position: { x: 30, y: 300 }
+      positionAbsolute: { x: 30, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Parse List"
+        type: code
+        code_language: python3
+        code: |
+          import json
+
+          def main(text_items: str) -> dict:
+              items = json.loads(text_items)
+              if not isinstance(items, list):
+                  items = [items]
+              return {"items": items}
+        variables:
+          - value_selector: ["start_1", text_items]
+            variable: text_items
+        outputs:
+          items:
+            type: array
+            children:
+              type: string
+        desc: "Parse the input JSON string into a list"
+      height: 98
+      id: "parse_1"
+      position: { x: 334, y: 300 }
+      positionAbsolute: { x: 334, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Iterate and Summarize"
+        type: iteration
+        iterator_selector: ["parse_1", items]
+        output_selector: ["iter_llm_1", text]
+        output_type: array[string]
+        is_parallel: false
+        parallel_nums: 10
+        start_node_id: "iteration_start_1"
+        selected: false
+      height: 120
+      id: "iteration_1"
+      position: { x: 638, y: 300 }
+      positionAbsolute: { x: 638, y: 300 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Iteration Start"
+        type: start
+        variables: []
+      height: 54
+      id: "iteration_start_1"
+      position: { x: 680, y: 350 }
+      positionAbsolute: { x: 680, y: 350 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 120
+    - data:
+        title: "Summarize Item"
+        type: llm
+        model:
+          provider: langgenius/tongyi/tongyi
+          name: qwen-max
+          mode: chat
+          completion_params:
+            temperature: 0.3
+        prompt_template:
+          - id: "iter-sys-001"
+            role: system
+            text: "You are a concise summarizer. Output a one-sentence summary."
+          - id: "iter-user-001"
+            role: user
+            text: "Summarize the following:\n\n{{#sys.current_item#}}"
+        context:
+          enabled: false
+          variable_selector: []
+        variables: []
+        vision:
+          enabled: false
+        isInIteration: true
+        selected: false
+      height: 98
+      id: "iter_llm_1"
+      position: { x: 850, y: 350 }
+      positionAbsolute: { x: 850, y: 350 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        title: "Iteration End"
+        type: code
+        code_language: python3
+        code: |
+          def main(text: str) -> dict:
+              return {"output": text}
+        variables:
+          - value_selector: ["iter_llm_1", text]
+            variable: text
+        outputs:
+          output:
+            type: string
+            children: null
+      height: 54
+      id: "iteration_end_1"
+      position: { x: 1050, y: 350 }
+      positionAbsolute: { x: 1050, y: 350 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-end
+      width: 120
+    - data:
+        title: "End"
+        type: end
+        outputs:
+          - variable: summaries
+            value_selector: ["iteration_1", output]
+      height: 90
+      id: "end_1"
+      position: { x: 942, y: 550 }
+      positionAbsolute: { x: 942, y: 550 }
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport: { x: 50, y: 200, zoom: 0.7 }
