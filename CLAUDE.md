@@ -2,6 +2,17 @@
 
 让 Claude Code 能根据自然语言生成可导入 Dify 的工作流 DSL YAML。
 
+## 铁律：项目语言
+
+**本项目所有输出必须使用中文。** 以下场景除外：
+
+- 代码（Python、YAML、Markdown 代码块等）
+- 专有名词（Dify、DSL、Mintlify、MCP、YAML、JSON 等）
+- 用户明确要求使用英文的指令
+- 文件路径、命令行指令
+
+其余所有场景——包括注释、文档、commit message、PR 描述、对话回复、分析报告——**必须使用中文**。无例外。
+
 ## 项目结构
 
 - `.claude/skills/dify-workflow/` — 核心 Skill
@@ -43,7 +54,7 @@
 
 ## 编码规范
 
-- Skill 文件用中文编写
+- 语言要求见上方「铁律：项目语言」
 - 变量引用格式：`{{#node_id.field#}}`（节点输出）、`{{variable}}`（环境变量）
 - DSL YAML 缩进为 2 空格
 - 节点 ID 使用 snake_case
