@@ -1,0 +1,758 @@
+app:
+  name: "智能电商客服-完整版"
+  description: "多意图识别电商客服系统，支持退款、物流、商品咨询和通用问答"
+  icon: "🛒"
+  icon_type: emoji
+  icon_background: "#E4FBCC"
+  mode: advanced-chat
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      image:
+        enabled: false
+      enabled: false
+    opening_statement: "您好！我是智能客服助手，可以帮您处理退款、查询物流、解答商品问题。请问有什么可以帮您？"
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+      - "我要退款，订单号是 ORD20240101001"
+      - "帮我查一下物流单号 SF1234567890"
+      - "这款手机的电池续航怎么样？"
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+      # start → intent_recognition
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: llm
+        id: edge-start-intent
+        source: "start_1"
+        sourceHandle: source
+        target: "intent_recognition"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # intent_recognition → router_refund
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: if-else
+        id: edge-intent-router1
+        source: "intent_recognition"
+        sourceHandle: source
+        target: "router_refund"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # router_refund (YES) → extract_order_id
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: code
+        id: edge-router1-yes
+        source: "router_refund"
+        sourceHandle: "true"
+        target: "extract_order_id"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # router_refund (NO) → router_logistic
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: if-else
+        id: edge-router1-no
+        source: "router_refund"
+        sourceHandle: "false"
+        target: "router_logistic"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # router_logistic (YES) → extract_tracking_no
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: code
+        id: edge-router2-yes
+        source: "router_logistic"
+        sourceHandle: "true"
+        target: "extract_tracking_no"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # router_logistic (NO) → router_product
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: if-else
+        id: edge-router2-no
+        source: "router_logistic"
+        sourceHandle: "false"
+        target: "router_product"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # router_product (YES) → knowledge_search
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: knowledge-retrieval
+        id: edge-router3-yes
+        source: "router_product"
+        sourceHandle: "true"
+        target: "knowledge_search"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # router_product (NO) → direct_reply
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: llm
+        id: edge-router3-no
+        source: "router_product"
+        sourceHandle: "false"
+        target: "direct_reply"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # extract_order_id → query_order_api
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: http-request
+        id: edge-extract-http1
+        source: "extract_order_id"
+        sourceHandle: source
+        target: "query_order_api"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # extract_tracking_no → query_logistics_api
+      - data:
+          isInIteration: false
+          sourceType: code
+          targetType: http-request
+        id: edge-extract-http2
+        source: "extract_tracking_no"
+        sourceHandle: source
+        target: "query_logistics_api"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # query_order_api → reply_refund
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: llm
+        id: edge-http1-reply
+        source: "query_order_api"
+        sourceHandle: source
+        target: "reply_refund"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # query_logistics_api → reply_logistic
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: llm
+        id: edge-http2-reply
+        source: "query_logistics_api"
+        sourceHandle: source
+        target: "reply_logistic"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # knowledge_search → reply_product
+      - data:
+          isInIteration: false
+          sourceType: knowledge-retrieval
+          targetType: llm
+        id: edge-kb-reply
+        source: "knowledge_search"
+        sourceHandle: source
+        target: "reply_product"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # reply_refund → answer_refund
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: answer
+        id: edge-reply1-answer
+        source: "reply_refund"
+        sourceHandle: source
+        target: "answer_refund"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # reply_logistic → answer_logistic
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: answer
+        id: edge-reply2-answer
+        source: "reply_logistic"
+        sourceHandle: source
+        target: "answer_logistic"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # reply_product → answer_product
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: answer
+        id: edge-reply3-answer
+        source: "reply_product"
+        sourceHandle: source
+        target: "answer_product"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # direct_reply → answer_other
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: answer
+        id: edge-reply4-answer
+        source: "direct_reply"
+        sourceHandle: source
+        target: "answer_other"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+    nodes:
+      # ============================================
+      # 1. 开始节点
+      # ============================================
+      - data:
+          title: "开始"
+          type: start
+          variables: []
+        height: 54
+        id: "start_1"
+        position: { x: 80, y: 350 }
+        positionAbsolute: { x: 80, y: 350 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 2. 意图识别
+      # ============================================
+      - data:
+          title: "意图识别"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen-turbo-latest
+            mode: chat
+            completion_params:
+              temperature: 0.1
+          prompt_template:
+            - id: p1
+              role: system
+              text: "你是意图分类器。根据用户输入输出：\n- refund: 退款、退货、售后\n- logistic: 物流、快递、配送\n- product: 商品信息、规格、使用方法\n- other: 其他问题\n\n只输出类别词。"
+            - id: p2
+              role: user
+              text: "{{#sys.query#}}"
+          context:
+            enabled: false
+            variable_selector: []
+          variables: []
+          vision:
+            enabled: false
+          memory:
+            query_prompt_template: "{{#sys.query#}}"
+            role_prefix:
+              user: ""
+              assistant: ""
+            window:
+              enabled: false
+              size: 10
+        height: 98
+        id: "intent_recognition"
+        position: { x: 380, y: 350 }
+        positionAbsolute: { x: 380, y: 350 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 3. 路由1：是否退款
+      # ============================================
+      - data:
+          title: "是否退款？"
+          type: if-else
+          cases:
+            - case_id: "true"
+              conditions:
+                - comparison_operator: contains
+                  id: "c1"
+                  value: "refund"
+                  varType: string
+                  variable_selector: ["intent_recognition", "text"]
+              id: "true"
+              logical_operator: and
+        height: 126
+        id: "router_refund"
+        position: { x: 680, y: 350 }
+        positionAbsolute: { x: 680, y: 350 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 4. 路由2：是否物流
+      # ============================================
+      - data:
+          title: "是否物流？"
+          type: if-else
+          cases:
+            - case_id: "true"
+              conditions:
+                - comparison_operator: contains
+                  id: "c2"
+                  value: "logistic"
+                  varType: string
+                  variable_selector: ["intent_recognition", "text"]
+              id: "true"
+              logical_operator: and
+        height: 126
+        id: "router_logistic"
+        position: { x: 980, y: 500 }
+        positionAbsolute: { x: 980, y: 500 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 5. 路由3：是否商品咨询
+      # ============================================
+      - data:
+          title: "是否商品咨询？"
+          type: if-else
+          cases:
+            - case_id: "true"
+              conditions:
+                - comparison_operator: contains
+                  id: "c3"
+                  value: "product"
+                  varType: string
+                  variable_selector: ["intent_recognition", "text"]
+              id: "true"
+              logical_operator: and
+        height: 126
+        id: "router_product"
+        position: { x: 1280, y: 650 }
+        positionAbsolute: { x: 1280, y: 650 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 6. 提取订单号
+      # ============================================
+      - data:
+          title: "提取订单号"
+          type: code
+          code_language: python3
+          code: |
+            import re
+
+            def main(query: str) -> dict:
+                match = re.search(r'ORD\d+', query)
+                return {"order_id": match.group(0) if match else ""}
+          variables:
+            - value_selector: ["sys", "query"]
+              variable: query
+          outputs:
+            order_id:
+              type: string
+              children: null
+          desc: ""
+        height: 98
+        id: "extract_order_id"
+        position: { x: 980, y: 180 }
+        positionAbsolute: { x: 980, y: 180 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 7. 提取物流单号
+      # ============================================
+      - data:
+          title: "提取物流单号"
+          type: code
+          code_language: python3
+          code: |
+            import re
+
+            def main(query: str) -> dict:
+                match = re.search(r'SF\d{12,}', query)
+                return {"tracking_no": match.group(0) if match else ""}
+          variables:
+            - value_selector: ["sys", "query"]
+              variable: query
+          outputs:
+            tracking_no:
+              type: string
+              children: null
+          desc: ""
+        height: 98
+        id: "extract_tracking_no"
+        position: { x: 1280, y: 380 }
+        positionAbsolute: { x: 1280, y: 380 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 8. 查询订单 API
+      # ============================================
+      - data:
+          title: "查询订单"
+          type: http-request
+          method: get
+          url: "https://jsonplaceholder.typicode.com/posts/1"
+          headers: "Content-Type: application/json"
+          params: ""
+          body:
+            type: none
+            data: []
+          authorization:
+            type: no-auth
+            config: null
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+        height: 110
+        id: "query_order_api"
+        position: { x: 1280, y: 180 }
+        positionAbsolute: { x: 1280, y: 180 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 9. 查询物流 API
+      # ============================================
+      - data:
+          title: "查询物流"
+          type: http-request
+          method: get
+          url: "https://jsonplaceholder.typicode.com/posts/2"
+          headers: "Content-Type: application/json"
+          params: ""
+          body:
+            type: none
+            data: []
+          authorization:
+            type: no-auth
+            config: null
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 30
+            max_write_timeout: 10
+        height: 110
+        id: "query_logistics_api"
+        position: { x: 1580, y: 380 }
+        positionAbsolute: { x: 1580, y: 380 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 10. 知识库检索
+      # ============================================
+      - data:
+          title: "商品知识检索"
+          type: knowledge-retrieval
+          dataset_ids:
+            - "product-knowledge-base"
+          query_variable_selector: ["sys", "query"]
+          retrieval_mode: multiple
+          multiple_retrieval_config:
+            top_k: 3
+            reranking_enable: false
+            score_threshold_enabled: false
+            score_threshold: 0
+          metadata_filtering_mode: disabled
+        height: 98
+        id: "knowledge_search"
+        position: { x: 1580, y: 650 }
+        positionAbsolute: { x: 1580, y: 650 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 11. 退款回复
+      # ============================================
+      - data:
+          title: "退款回复"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen-turbo-latest
+            mode: chat
+            completion_params:
+              temperature: 0.7
+          prompt_template:
+            - id: p3
+              role: system
+              text: "根据订单信息回复用户退款问题，说明订单状态和退款流程。"
+            - id: p4
+              role: user
+              text: "用户：{{#sys.query#}}\n订单号：{{#extract_order_id.order_id#}}\n查询结果：{{#query_order_api.body#}}"
+          context:
+            enabled: false
+            variable_selector: []
+          variables: []
+          vision:
+            enabled: false
+          memory:
+            query_prompt_template: "{{#sys.query#}}"
+            role_prefix:
+              user: ""
+              assistant: ""
+            window:
+              enabled: false
+              size: 10
+        height: 98
+        id: "reply_refund"
+        position: { x: 1580, y: 180 }
+        positionAbsolute: { x: 1580, y: 180 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 12. 物流回复
+      # ============================================
+      - data:
+          title: "物流回复"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen-turbo-latest
+            mode: chat
+            completion_params:
+              temperature: 0.7
+          prompt_template:
+            - id: p5
+              role: system
+              text: "根据物流信息回复用户，说明当前配送状态。"
+            - id: p6
+              role: user
+              text: "用户：{{#sys.query#}}\n物流单号：{{#extract_tracking_no.tracking_no#}}\n查询结果：{{#query_logistics_api.body#}}"
+          context:
+            enabled: false
+            variable_selector: []
+          variables: []
+          vision:
+            enabled: false
+          memory:
+            query_prompt_template: "{{#sys.query#}}"
+            role_prefix:
+              user: ""
+              assistant: ""
+            window:
+              enabled: false
+              size: 10
+        height: 98
+        id: "reply_logistic"
+        position: { x: 1880, y: 380 }
+        positionAbsolute: { x: 1880, y: 380 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 13. 商品回复（带知识库上下文）
+      # ============================================
+      - data:
+          title: "商品回复"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen-turbo-latest
+            mode: chat
+            completion_params:
+              temperature: 0.7
+          prompt_template:
+            - id: p7
+              role: system
+              text: "根据知识库内容详细回答用户关于商品的问题。"
+            - id: p8
+              role: user
+              text: "用户：{{#sys.query#}}"
+          context:
+            enabled: true
+            variable_selector: ["knowledge_search", "result"]
+          variables: []
+          vision:
+            enabled: false
+          memory:
+            query_prompt_template: "{{#sys.query#}}"
+            role_prefix:
+              user: ""
+              assistant: ""
+            window:
+              enabled: false
+              size: 10
+        height: 98
+        id: "reply_product"
+        position: { x: 1880, y: 650 }
+        positionAbsolute: { x: 1880, y: 650 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 14. 通用回复
+      # ============================================
+      - data:
+          title: "通用回复"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen-turbo-latest
+            mode: chat
+            completion_params:
+              temperature: 0.7
+          prompt_template:
+            - id: p9
+              role: system
+              text: "友好回答用户问题。超出服务范围时引导联系人工客服。"
+            - id: p10
+              role: user
+              text: "{{#sys.query#}}"
+          context:
+            enabled: false
+            variable_selector: []
+          variables: []
+          vision:
+            enabled: false
+          memory:
+            query_prompt_template: "{{#sys.query#}}"
+            role_prefix:
+              user: ""
+              assistant: ""
+            window:
+              enabled: false
+              size: 10
+        height: 98
+        id: "direct_reply"
+        position: { x: 1580, y: 800 }
+        positionAbsolute: { x: 1580, y: 800 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      # ============================================
+      # 15-18. 四个独立的 Answer 节点
+      # ============================================
+      - data:
+          title: "退款结果"
+          type: answer
+          answer: "{{#reply_refund.text#}}"
+          variables: []
+        id: "answer_refund"
+        position: { x: 1880, y: 180 }
+        positionAbsolute: { x: 1880, y: 180 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      - data:
+          title: "物流结果"
+          type: answer
+          answer: "{{#reply_logistic.text#}}"
+          variables: []
+        id: "answer_logistic"
+        position: { x: 2180, y: 380 }
+        positionAbsolute: { x: 2180, y: 380 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      - data:
+          title: "商品结果"
+          type: answer
+          answer: "{{#reply_product.text#}}"
+          variables: []
+        id: "answer_product"
+        position: { x: 2180, y: 650 }
+        positionAbsolute: { x: 2180, y: 650 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+      - data:
+          title: "其他结果"
+          type: answer
+          answer: "{{#direct_reply.text#}}"
+          variables: []
+        id: "answer_other"
+        position: { x: 1880, y: 800 }
+        positionAbsolute: { x: 1880, y: 800 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+
+    viewport: { x: 50, y: 150, zoom: 0.7 }
