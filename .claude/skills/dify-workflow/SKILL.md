@@ -15,200 +15,131 @@ workflow variables/features, and a ReactFlow-like graph of nodes and edges.
 
 ## Core Workflow
 
-1. Start with mode intake. For new DSL, default to `workflow`. Use or offer
-   `advanced-chat` only when the user needs Chatflow behavior: multi-turn chat,
-   memory, `sys.query`, `sys.files`, streaming answers, or `answer` nodes.
-2. Clarify only import-blocking requirements: app mode (`workflow` or `advanced-chat`),
-   required inputs, model/provider, installed plugins, knowledge bases, secrets,
-   trigger source, and expected outputs. If the user has not chosen a mode, say
-   that you will proceed with `workflow` by default unless they prefer Chatflow.
-3. Choose the DSL version. For new DSL, target official Dify app DSL
-   `version: "0.6.0"` unless the user explicitly asks for old-version
-   compatibility. Always write `version` as a YAML string.
-4. Sketch the graph before writing YAML: start/input or trigger, transform/reasoning nodes,
-   tools, branches/loops, final `end` or `answer`.
-5. Use stable string node IDs and connect every edge with matching `sourceType`,
-   `targetType`, `sourceHandle`, and `targetHandle`.
-6. Add `dependencies` for every plugin-backed LLM provider, tool, agent, knowledge
-   feature, and model config. Support marketplace, package, and GitHub dependency
-   entries; use exact exported plugin identifiers when available.
-7. For any plugin/tool not covered by existing examples, use Mintlify MCP
-   (`references/mcp-usage-guide.md`) to query Dify docs. Prefer a minimal exported
-   DSL from the user's Dify workspace, then plugin source/package metadata, then
-   marketplace pages. Be explicit about reliability when exact tool schemas are
-   unavailable.
-8. Validate locally with `python3 .claude/skills/dify-workflow/scripts/validate_dsl.py <file.yaml>` before giving
-   the user the YAML path.
+1. **确定模式**：默认 `workflow`。需要多轮对话、memory、`sys.query`、`sys.files`
+   或 `answer` 节点时，使用 `advanced-chat`。详见 `references/usecase-node-selection.md`。
+2. **收集需求**：确认 app mode、inputs、model/provider、插件、知识库、密钥、
+   触发源、期望输出。
+3. **选择版本**：新 DSL 使用 `version: "0.6.0"`（YAML 字符串格式）。
+4. **绘制草图**：先画节点连接图，再写 YAML。
+5. **连接边**：每条边必须有 `sourceType`、`targetType`、`sourceHandle`、`targetHandle`。
+6. **添加依赖**：每个插件节点都需要 dependencies 条目。
+   详见 `references/plugin-marketplace-tools.md`。
+7. **查询文档**：节点不在本地 Schema 中时，用 Mintlify MCP 查询。
+   详见 `references/mcp-usage-guide.md`。
+8. **校验输出**：`python3 .claude/skills/dify-workflow/scripts/validate_dsl.py <file.yaml>`
 
 ## New DSL Intake
 
-Use this compact intake when creating a workflow from a plain-language request:
+从自然语言需求创建工作流时，确认以下 5 项：
 
-- **Mode**: default `workflow`; choose `advanced-chat` for Chatflow, memory, or
-  conversational answer nodes.
-- **Trigger**: manual start variables, chat input, schedule, webhook, plugin event,
-  or another workflow calling this one as a tool.
-- **Inputs**: text, files, structured JSON, form fields, dataset IDs, external event
-  payload, or tool credentials.
-- **Output**: returned `end` values, chat `answer`, side-effect tool action
-  (Slack/Feishu/email/DB/API), or generated file.
-- **Shape**: straight-line transform, branch classifier, extractor/validator,
-  retrieval-augmented answer, loop/iteration over records, or agent with tools.
+- **Mode**：默认 `workflow`；Chatflow 用 `advanced-chat`
+- **Trigger**：start variables / chat input / schedule / webhook / plugin event
+- **Inputs**：text / files / JSON / form fields / dataset IDs / tool credentials
+- **Output**：end values / answer / side-effect tool / generated file
+- **Shape**：straight-line / branch / extractor / RAG / iteration / agent
+
+详细模式和触发器选择：`references/usecase-node-selection.md`
 
 ## Required Decisions
 
-- **Mode**: default to `workflow` for one-shot, batch, triggered, integration,
-  and side-effect automations; use `advanced-chat` for Chatflow, `sys.query`,
-  `sys.files`, memory, and `answer` nodes.
-- **Inputs**: in `workflow`, define start `variables`; in `advanced-chat`, keep
-  start variables empty unless the app needs explicit form inputs.
-- **Secrets**: do not hardcode real API keys, DB passwords, or webhook secrets.
-  Prefer Dify plugin authorization, `env` variables, or clear placeholders.
-- **Database access**: prefer parameterized tool calls (`$arg0`, `$arg1`, ...)
-  over interpolated SQL. For LLM-generated SQL, restrict to SELECT unless the
-  user explicitly asks for writes and accepts the risk.
-- **Model/provider**: keep provider names exactly as Dify exports them, for example
-  `langgenius/tongyi/tongyi`, `openai`, or a marketplace provider path.
-- **New plugin tools**: do not promise import-and-run reliability from a tool name
-  alone. Ask for a minimal exported DSL or plugin source/package when exact
-  `provider_id`, `tool_name`, parameters, and authorization schema are unknown.
+- **模式**：`workflow` 用于一次性/批量/触发/集成；`advanced-chat` 用于 Chatflow
+- **密钥**：不硬编码真实密钥，用 `env` 变量或占位符
+- **插件工具**：不承诺未知工具的可靠性，要求导出 DSL 或源码
+
+详细决策矩阵：`references/usecase-node-selection.md`、`references/plugin-marketplace-tools.md`
 
 ## Authoring Rules
 
-- For newly generated DSL, use `version: "0.6.0"` and top-level `kind: app`.
-- `workflow.graph.nodes` and `workflow.graph.edges` must both exist.
-- Node wrapper `type` is normally `custom`; `data.type` is the real node kind.
-- Every node `id` should be a string. Do not reuse IDs.
-- Edges must reference existing node IDs.
-- Branch edges from `if-else` use source handles from case IDs, commonly `"true"`,
-  `"false"`, or a UUID custom case ID.
-- Question classifier source handles use class IDs such as `"1"`, `"2"`.
-- Iteration/loop internals need `isInIteration`/`isInLoop`, parent IDs, and start
-  helper nodes when exported by Dify.
-- `value_selector` and `variable_selector` are arrays, for example
-  `["node_id", "text"]`; prompt interpolation is `{{#node_id.field#}}`.
-- Code nodes must define the runtime entrypoint: Python uses `def main(...)`,
-  JavaScript/TypeScript uses `function main(...)` or an equivalent `main`
-  function. Return keys must match `outputs`.
-- Tool nodes must include `provider_id`, `provider_name`, `provider_type`,
-  `tool_name`, `tool_label`, and `tool_parameters`. `plugin_id`,
-  `plugin_unique_identifier`, and `tool_node_version` are common but not universal;
-  preserve them when copied from an export.
-- `provider_type` may be `builtin`, `api`, `workflow`, or `mcp`.
-- Dependencies may use `type: marketplace` with `marketplace_plugin_unique_identifier`,
-  `type: package` with `plugin_unique_identifier`, or `type: github` with
-  `github_plugin_unique_identifier` plus repo/package metadata.
-- `custom-note` nodes are valid canvas annotations and may have empty `data.type`.
-- `agent-chat`, `chat`, and `completion` apps may be top-level `model_config`
-  apps with no `workflow.graph`; do not force graph rules onto them when reviewing
-  legacy exports.
-- For public examples, replace tenant-specific icon URLs and credentials with
-  placeholders unless they are harmless exported metadata.
+核心规则（完整规范见 reference 文件）：
+
+1. `version: "0.6.0"` + `kind: app`
+2. `workflow.graph.nodes` 和 `workflow.graph.edges` 必须存在
+3. 节点 `type` 通常为 `custom`，`data.type` 为实际节点类型
+4. 节点 `id` 必须为字符串，不可重复
+5. 边必须引用存在的节点 ID
+6. `if-else` 分支用 `"true"` / `"false"` sourceHandle
+7. `value_selector` / `variable_selector` 为数组 `["node_id", "field"]`
+8. Code 节点必须定义 `main` 函数
+9. Tool 节点必须有 `provider_id`、`provider_name`、`provider_type`、`tool_name`、`tool_parameters`
+10. `custom-note` 是合法的画布注释节点
+
+完整官方规范：`references/official-0.6-target.md`
+完整插件规则：`references/plugin-marketplace-tools.md`
 
 ## Validation Checklist
 
-Before finalizing a DSL:
+校验 DSL 前：
 
-- YAML parses cleanly.
-- `version` is a string and `app.mode` matches terminal node type:
-  non-trigger `workflow` uses `end`, `advanced-chat` uses `answer`, and
-  trigger/side-effect workflows document why they may finish at a tool.
-- Dependencies cover all plugin-backed nodes.
-- All graph edges resolve to existing nodes and matching data types.
-- Start variables, conversation variables, and environment variables have unique
-  names. Include selectors for new variables; tolerate missing conversation
-  selectors when reviewing older exports.
-- Every LLM has a model and prompt template.
-- Every tool has required provider/tool fields and parameter values.
-- New or rare plugin tools are backed by an exported node, plugin package/source,
-  or clearly labeled as a best-effort draft that still needs Dify import testing.
-- SQL has no trailing comma before `)` and uses bound parameters for dynamic values.
-- The final answer tells the user which file was written and whether validation
-  passed.
+- YAML 解析成功
+- `version` 是字符串，`app.mode` 匹配终端节点类型
+- 依赖覆盖所有插件节点
+- 所有边指向存在的节点且类型匹配
+- 变量名唯一
+- 每个 LLM 有 model 和 prompt_template
+- 每个 tool 有必填字段
+- SQL 无尾部逗号，用绑定参数
+- 告知用户文件路径和校验结果
 
-## Reference Map
+详细校验规则：`references/validation-rules.md`
 
-All references live under `.claude/skills/dify-workflow/references/`. Use these
-to resolve node schemas, variable syntax, output fields, validation rules, and
-MCP usage patterns.
+## 加载策略
 
-| File | Contents |
-|---|---|
-| `references/node-schemas.md` | Node-specific schemas (26 node types) |
-| `references/dsl-structure.md` | Top-level YAML structure, variables, dependencies, edges |
-| `references/variable-syntax.md` | Variable reference syntax and `rag` prefix |
-| `references/node-output-fields.md` | Node output fields for variable references |
-| `references/validation-rules.md` | Human-readable validation rules |
-| `references/mcp-usage-guide.md` | Mintlify MCP usage guide for querying Dify docs |
-| `references/templates/` | 7 workflow templates |
+Reference 文件按 3 层组织，按需加载：
+
+### 第 1 层：始终加载（每次生成 DSL 都需要）
+
+| 文件 | 用途 |
+|------|------|
+| `references/dsl-structure.md` | DSL 顶层结构、变量、依赖、边 |
+| `references/node-schemas.md` | 26 个节点的 Schema 和配置示例 |
+
+### 第 2 层：按需加载（特定任务时加载）
+
+| 文件 | 何时加载 |
+|------|---------|
+| `references/usecase-node-selection.md` | 收到业务需求，需要确定模式和节点组合 |
+| `references/variable-syntax.md` | 需要写变量引用 `{{#node_id.field#}}` |
+| `references/node-output-fields.md` | 需要确认节点输出字段名 |
+
+### 第 3 层：特定场景加载（遇到特定场景时加载）
+
+| 文件 | 何时加载 |
+|------|---------|
+| `references/database-tools.md` | 涉及 PostgreSQL/SQL 数据库操作 |
+| `references/plugin-marketplace-tools.md` | 使用非内置工具（插件/MCP/workflow-provider） |
+| `references/official-0.6-target.md` | 需要确认官方 DSL 规范、版本兼容、节点枚举 |
+| `references/real-world-yml-study.md` | 需要参考真实工作流模式和经验 |
+| `references/validation-rules.md` | 校验 DSL 时 |
+| `references/mcp-usage-guide.md` | 使用 Mintlify MCP 查询文档时 |
+| `references/templates/` | 需要模板参考时 |
 
 ## Mintlify MCP 文档查询
 
-The project integrates with Mintlify MCP for querying Dify documentation. Use
-MCP when local references are insufficient.
+当本地 reference 不够用时，调用 MCP 查询 Dify 文档：
 
-### When to Call MCP
+- 节点不在 26 个 Schema 列表中
+- 用户 Dify 版本与 v0.6.0 不一致
+- 查询 Context RAG、Jinja2、Memory 等高级特性
+- 确认最新节点变更
 
-Call the MCP tools when any of the following apply:
+可用工具：
+- `search_dify_docs(query, version?, language?)` — 语义搜索
+- `query_docs_filesystem_dify_docs(command)` — 虚拟文件系统（rg/cat/tree）
 
-- A node type is **not in the 26 schema list** in `references/node-schemas.md`.
-  The user's Dify instance may have a custom or newer node type not yet documented locally.
-- The user's Dify version **differs from v0.6.0**. Query for version-specific differences.
-- Querying **Context RAG, Jinja2, or Memory** features that may have changed
-  between Dify releases.
-- Confirming **latest node changes** or deprecations before finalizing DSL.
-
-### Available Tools
-
-Two MCP tools are available for documentation queries:
-
-- **`search_dify_docs(query, version?, language?)`** — Semantic search across the
-  Dify documentation knowledge base. Returns relevant content with titles and
-  direct links to documentation pages. Use for conceptual queries like "how does
-  Context RAG work" or "what are the latest changes to code nodes."
-- **`query_docs_filesystem_dify_docs(command)`** — Read-only filesystem query against
-  the documentation. Supports `rg`, `grep`, `find`, `cat`, `head`, `tail`, etc.
-  Use for exact keyword matching and structural exploration. Pass `.mdx` paths
-  (e.g., `/api-reference/create-customer.mdx`) to read full pages.
-
-### MCP Usage Notes
-
-- MCP queries are **read-only** — they never modify local files or state.
-- Results are cached for 15 minutes to avoid redundant network calls.
-- When MCP is unavailable (network issues, service downtime), fall back to local
-  references — see the **降级策略** section below.
+详见 `references/mcp-usage-guide.md`
 
 ## 降级策略
 
-When Mintlify MCP is unavailable (network issues, service downtime, or
-unconfigured environment), the skill degrades gracefully to local references:
+当 Mintlify MCP 不可用时：
 
-1. **Node schemas**: Use `references/node-schemas.md` which covers 26 common
-   node types. If a node type is not listed, inform the user that the schema
-   is a best-effort estimate based on known patterns and may need import
-   testing in Dify.
-2. **Variable syntax**: Use `references/variable-syntax.md` for standard
-   `{{#node_id.field#}}` patterns. For complex or unusual references, note
-   that the pattern should be verified against Dify's actual export.
-3. **DSL structure**: Use `references/dsl-structure.md` for the top-level
-   structure, variables, dependencies, and edges. This covers the stable
-   core of the DSL format.
-4. **Validation**: Use `references/validation-rules.md` and the validation
-   script for structural checks. Note that semantic correctness (e.g., does
-   this prompt template actually work with this model) cannot be verified
-   without MCP.
-5. **Templates**: Use `references/templates/` for common workflow patterns.
-   Templates are always available regardless of MCP status.
-
-When degraded, always inform the user: "MCP is currently unavailable; I'm
-using local references which may not reflect the latest Dify changes. The
-generated DSL should be tested with Dify import before production use."
+1. 用 `references/node-schemas.md` 的 Schema（26 个节点）
+2. 用 `references/templates/` 的模板
+3. 用 `references/validation-rules.md` + validate_dsl.py 校验
+4. 不确定的配置返回 warning，不报错
+5. 告知用户："MCP 不可用，使用本地 reference，生成的 DSL 需要 Dify 导入测试"
 
 ## Useful Commands
 
-- `python3 .claude/skills/dify-workflow/scripts/validate_dsl.py <file.yaml>` —
-  Validate a DSL YAML file against structural and schema rules.
-- `rg -i "keyword" .claude/skills/dify-workflow/references/` —
-  Search across all reference files for a keyword or pattern.
-- `cat .claude/skills/dify-workflow/references/templates/<template>.yaml` —
-  View a workflow template for reference.
+- `python3 .claude/skills/dify-workflow/scripts/validate_dsl.py <file.yaml>` — 校验 DSL
+- `rg -i "keyword" .claude/skills/dify-workflow/references/` — 搜索 reference
+- `cat .claude/skills/dify-workflow/references/templates/<template>.yaml` — 查看模板

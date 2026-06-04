@@ -17,14 +17,10 @@
 
 - `.claude/skills/dify-workflow/` — 核心 Skill
   - `SKILL.md` — 主 Skill 文件（基于 yzmw123 适配）
-  - `references/` — 参考文件（Schema、语法、校验、模板）
-    - `node-schemas.md` — 26 个节点 Schema
-    - `dsl-structure.md` — DSL 结构规范
-    - `variable-syntax.md` — 变量引用语法 + rag 前缀
-    - `node-output-fields.md` — 节点输出字段
-    - `validation-rules.md` — 校验规则说明
-    - `mcp-usage-guide.md` — Mintlify MCP 使用指引
-    - `templates/` — 7 个工作流模板
+  - `references/` — 参考文件（按 3 层组织）
+    - 第 1 层（始终加载）：`dsl-structure.md`、`node-schemas.md`
+    - 第 2 层（按需加载）：`usecase-node-selection.md`、`variable-syntax.md`、`node-output-fields.md`
+    - 第 3 层（特定场景）：`database-tools.md`、`plugin-marketplace-tools.md`、`official-0.6-target.md`、`real-world-yml-study.md`、`validation-rules.md`、`mcp-usage-guide.md`、`templates/`
   - `scripts/validate_dsl.py` — DSL 校验脚本
   - `examples/` — 集成测试示例（3 个工作流）
 - `.mcp.json` — Mintlify MCP 配置（docs.dify.ai 文档查询）
