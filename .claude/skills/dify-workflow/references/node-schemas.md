@@ -386,6 +386,13 @@ tool_parameters:
 selected: false
 ```
 
+**Tool 节点 vs Agent 内工具配置**：
+
+| 场景 | 工具类型字段 | 配置字段 |
+|------|-------------|---------|
+| 独立 Tool 节点 | `provider_type` | `tool_configurations` + `tool_parameters` |
+| Agent 内工具 | `type` | `settings` + `parameters` (auto 格式) |
+
 工具输出字段取决于具体插件。常见字段有 `text`、`data`、`result`、`json`、`files` 和 `output`。
 
 `plugin_id`、`plugin_unique_identifier` 和 `tool_node_version` 在较新的 marketplace/package 导出中常见，但并非所有工具都有。内置工具、MCP、API 和 workflow 工具可能会省略这些字段。从导出文件复制时请保留这些字段；不要凭空编造插件标识符。
@@ -395,6 +402,7 @@ selected: false
 ```yaml
 title: "Agent"
 type: agent
+tool_node_version: "2"
 agent_strategy_provider_name: langgenius/agent/agent
 agent_strategy_name: function_calling
 agent_strategy_label: FunctionCalling
@@ -417,8 +425,98 @@ agent_parameters:
     type: constant
     value: []
 output_schema: null
-selected: false
+selected: true
 ```
+
+**关键要点**：
+- 需要 `tool_node_version: "2"` 字段
+- 需要 `selected: true` 字段（不是 `selected: false`）
+
+### Agent 工具配置模板
+
+当 Agent 需要挂载工具时，`tools.value` 使用以下格式：
+
+```yaml
+tools:
+  type: constant
+  value:
+  - enabled: true
+    # === 通用字段（所有工具都适用） ===
+    type: builtin                              # 工具类型：builtin | api | workflow | mcp
+    provider_name: "{plugin_id}"               # 插件 ID，如 langgenius/tavily/tavily
+    provider_show_name: "{plugin_id}"          # 显示名称，通常与 provider_name 相同
+    tool_name: "{tool_name}"                   # 工具名称，如 tavily_search
+    tool_label: "{显示标签}"                    # 工具显示名称
+    tool_description: "{工具描述}"              # 工具描述
+    extra:
+      description: "{工具描述}"                 # 额外描述
+
+    # === 参数配置（使用 auto 格式） ===
+    parameters:
+      {param_name}:
+        auto: 1                                # 1 = 自动填充，0 = 手动指定
+        value: null                            # auto=1 时为 null
+
+    # === 工具特定配置 ===
+    settings:
+      {setting_name}:
+        value:
+          type: constant
+          value: {值}
+```
+
+**Tavily Search 示例**：
+
+```yaml
+tools:
+  type: constant
+  value:
+  - enabled: true
+    type: builtin
+    provider_name: langgenius/tavily/tavily
+    provider_show_name: langgenius/tavily/tavily
+    tool_name: tavily_search
+    tool_label: "Tavily Search"
+    tool_description: "搜索引擎工具"
+    extra:
+      description: "搜索引擎工具"
+    parameters:
+      query:
+        auto: 1
+        value: null
+      search_depth:
+        auto: 1
+        value: null
+      max_results:
+        auto: 1
+        value: null
+    settings:
+      max_results:
+        value:
+          type: constant
+          value: 5
+      search_depth:
+        value:
+          type: constant
+          value: advanced
+```
+
+**字段说明**：
+
+| 字段 | 说明 | 是否通用 |
+|------|------|---------|
+| `type` | 工具类型（builtin/api/workflow/mcp） | ✅ 通用 |
+| `provider_name` | 插件提供者 ID | ✅ 通用格式，值因插件而异 |
+| `provider_show_name` | 显示名称 | ✅ 通用 |
+| `tool_name` | 工具名称 | ✅ 通用格式，值因工具而异 |
+| `tool_label` | 工具显示标签 | ✅ 通用 |
+| `tool_description` | 工具描述 | ✅ 通用 |
+| `extra.description` | 额外描述 | ✅ 通用 |
+| `enabled` | 是否启用 | ✅ 通用 |
+| `parameters` + `auto: 1` | 参数自动填充 | ✅ 通用 |
+| `settings` | 工具特定配置 | ⚠️ 结构通用，内容因工具而异 |
+
+**注意**：`settings` 中的配置项因工具而异，需要从 Dify 导出文件中复制，不要凭空编造。
 
 ## iteration
 

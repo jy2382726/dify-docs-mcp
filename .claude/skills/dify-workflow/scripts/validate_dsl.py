@@ -256,6 +256,33 @@ def validate_node(report: Report, node_id: str, data: dict[str, Any]) -> None:
             if SQL_MUTATING_RE.search(sql):
                 report.warn(f"Tool node {node_id} ({title}) SQL mutates data; confirm this is intentional.")
 
+    elif node_type == "agent":
+        # Check required agent fields
+        if not data.get("agent_strategy_provider_name"):
+            report.error(f"Agent node {node_id} ({title}) missing agent_strategy_provider_name.")
+        if not data.get("agent_strategy_name"):
+            report.error(f"Agent node {node_id} ({title}) missing agent_strategy_name.")
+        if not data.get("agent_parameters"):
+            report.error(f"Agent node {node_id} ({title}) missing agent_parameters.")
+        if not data.get("tool_node_version"):
+            report.warn(f"Agent node {node_id} ({title}) missing tool_node_version.")
+        # Check tools configuration
+        agent_params = as_dict(data.get("agent_parameters"))
+        tools_config = as_dict(agent_params.get("tools"))
+        tools_value = tools_config.get("value")
+        if isinstance(tools_value, list):
+            for i, tool in enumerate(tools_value):
+                if not isinstance(tool, dict):
+                    report.error(f"Agent node {node_id} ({title}) tool #{i} is not a mapping.")
+                    continue
+                # Check required tool fields
+                if not tool.get("type"):
+                    report.warn(f"Agent node {node_id} ({title}) tool #{i} missing 'type' field.")
+                if not tool.get("provider_name"):
+                    report.error(f"Agent node {node_id} ({title}) tool #{i} missing provider_name.")
+                if not tool.get("tool_name"):
+                    report.error(f"Agent node {node_id} ({title}) tool #{i} missing tool_name.")
+
     elif node_type == "if-else":
         if not isinstance(data.get("cases"), list):
             report.error(f"If-else node {node_id} ({title}) missing cases list.")
