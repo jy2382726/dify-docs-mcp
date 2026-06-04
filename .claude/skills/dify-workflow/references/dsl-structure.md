@@ -171,23 +171,7 @@ more detail than a hand-written dependency list.
 
 ## Official Node Type Set
 
-Current Dify workflow node types include:
-
-```text
-start, end, answer, llm, knowledge-retrieval, question-classifier, if-else,
-code, template-transform, http-request, variable-assigner,
-variable-aggregator, tool, parameter-extractor, iteration,
-document-extractor, list-operator, iteration-start, assigner, agent, loop,
-loop-start, loop-end, human-input, datasource, datasource-empty,
-knowledge-index, trigger-schedule, trigger-webhook, trigger-plugin
-```
-
-Current input variable types include:
-
-```text
-text-input, paragraph, select, number, url, files, json, json_object,
-contexts, iterator, file, file-list, loop, checkbox
-```
+官方节点类型枚举（30 个）和输入变量类型列表见 `official-0.6-target.md` 的「Official Node Type Set」和「Input Variable Types」章节。
 
 ## Node Wrapper
 

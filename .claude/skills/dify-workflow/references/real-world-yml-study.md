@@ -11,349 +11,207 @@
 
 ---
 
-# Real-World YAML Study
+## 目录
 
-This reference records observations from real public Dify DSL files. Use it to
-calibrate generated YAML against workflows that people actually exported and ran.
-For new DSL generation, do not treat these public files as the latest schema
-authority; Dify's official current app DSL version is `0.6.0`, while this public
-corpus is older.
+- 检查的语料库
+- 2026-05-11 附加语料库
+- 详细样本
+- 附加详细样本
+- 观察到的版本和模式现实
+- 工具节点现实
+- 触发器和集成现实
+- 业务工作流现实
+- 依赖现实
+- 画布和辅助节点
+- 生成器项目经验
+- 本技能的规则修正
 
-## Contents
+## 检查的语料库
 
-- Corpus checked
-- Additional corpus checked on 2026-05-11
-- Detailed samples
-- Additional detailed samples
-- Observed version and mode reality
-- Tool node reality
-- Trigger and integration reality
-- Business workflow reality
-- Dependency reality
-- Canvas and helper nodes
-- Generator project lessons
-- Rule corrections for this skill
+检查的仓库：
 
-## Corpus Checked
+- `BannyLon/DifyAIA`：38 个 YAML 文件，全部 38 个解析为 Dify 应用
+- `svcvit/Awesome-Dify-Workflow`：46 个 YAML 文件，45 个解析为 Dify 应用
+- `wwwzhouhui/dify-for-dsl`：92 个 YAML 文件，89 个解析为 Dify 应用
 
-Repositories inspected:
+详细样本：39 个代表性 DSL 文件，按最近提交日期和工作流多样性选择，重点侧重 `Awesome-Dify-Workflow`。
 
-- `BannyLon/DifyAIA`: 38 YAML files, all 38 parsed as Dify apps.
-- `svcvit/Awesome-Dify-Workflow`: 46 YAML files, 45 parsed as Dify apps.
-- `wwwzhouhui/dify-for-dsl`: 92 YAML files, 89 parsed as Dify apps.
+2026-05-07 版本扫描：
 
-Detailed sample: 39 representative DSL files, selected by recent commit date and
-workflow diversity, with extra emphasis on `Awesome-Dify-Workflow`.
+- `BannyLon/DifyAIA`：`0.1.2`-`0.3.1`，无 `0.6.0`
+- `svcvit/Awesome-Dify-Workflow`：`0.1.0`-`0.3.0`，无 `0.6.0`
+- `wwwzhouhui/dify-for-dsl`：`0.1.2`-`0.5.0`，无 `0.6.0`
 
-Version scan on 2026-05-07:
+结论：这些样本是宝贵的现实世界 DSL 证据，但仅作为遗留/导入形状和工作流设计素材。新生成应以 `references/official-0.6-target.md` 为目标。
 
-- `BannyLon/DifyAIA`: `0.1.2`-`0.3.1`, no `0.6.0`.
-- `svcvit/Awesome-Dify-Workflow`: `0.1.0`-`0.3.0`, no `0.6.0`.
-- `wwwzhouhui/dify-for-dsl`: `0.1.2`-`0.5.0`, no `0.6.0`.
+## 2026-05-11 附加语料库
 
-Conclusion: these samples are valuable real-world DSL evidence, but only as
-legacy/import-shape and workflow-design material. Target new generation from
-`references/official-0.6-target.md`.
+检查的仓库：
 
-## Additional Corpus Checked On 2026-05-11
+- `g-krishna0/dify-export-test`：`dsl/` 下 87 个 YAML 文件，全部 87 个解析为 Dify 应用。全部使用 `version: 0.3.1`；模式为 50 个 `workflow` 和 37 个 `advanced-chat`
+- `Petrus-Han/dify-usecase-playground`：`usecases/` 下 3 个 YAML 文件，全部 3 个解析为 Dify 应用。两个使用 `version: 0.5.0`；一个使用 `version: 0.6.0`；全部为 `workflow`
+- `TheOneWithChair/Dify-DSL-generator`：不是样本 DSL 语料库，但作为竞品生成设计有参考价值。它使用 Streamlit 应用和 Gemini API 包装生成过程，采用 UI 输入收集工作流类型、复杂度、所需工具、预期输入/输出、验证、细化和节点文档库。可借鉴的经验是更好的输入收集和参考组织
 
-Repositories inspected:
+本次扫描后的聚合公共语料库：262 个解析的 Dify 应用 DSL 文件（172 个早期文件 + 90 个新文件）。大多数仍是遗留导出。新的 `dify-usecase-playground` 样本证明公共 `0.6.0` 导出存在，但样本量很小；官方 Dify 源码仍是新 DSL 的权威。
 
-- `g-krishna0/dify-export-test`: 87 YAML files under `dsl/`, all 87 parsed as
-  Dify apps. All use `version: 0.3.1`; modes are 50 `workflow` and 37
-  `advanced-chat`.
-- `Petrus-Han/dify-usecase-playground`: 3 YAML files under `usecases/`, all 3
-  parsed as Dify apps. Two use `version: 0.5.0`; one uses `version: 0.6.0`; all
-  are `workflow`.
-- `TheOneWithChair/Dify-DSL-generator`: not a sample DSL corpus, but useful as a
-  competing generation design. It uses a UI intake for workflow type, complexity,
-  required tools, expected input/output, validation, refinement, and a node-doc
-  library. It depends on Gemini, which this skill does not need; here the reusable
-  lesson is better intake and reference organization.
+新语料库统计：
 
-Aggregate public corpus after this pass: 262 parsed Dify app DSL files
-(172 earlier files + 90 new files). Most are still legacy exports. The new
-`dify-usecase-playground` sample proves public `0.6.0` exports exist, but the
-sample size is tiny; official Dify source remains the authority for new DSL.
+- `dify-export-test`：节点数 3 到 190，中位数 15。节点类型排名：`code` 744、`answer` 561、`if-else` 507、`assigner` 416、`template-transform` 259、`llm` 202、`http-request` 133、`tool` 90、`end` 100
+- `dify-export-test` 工具 provider：`workflow` 69 和 `builtin` 21。这是导出的 Dify 工作流常被组合为可复用子工作流工具的有力证据
+- `dify-usecase-playground`：节点数 3、8 和 14。节点类型包括 `trigger-schedule`、`trigger-webhook`、`trigger-plugin`、`agent`、`tool`、`llm`、`question-classifier`、`if-else` 和 `code`
+- 新的依赖证据仍以 marketplace 为主：`dify-export-test` 有 72 个 marketplace dependency 条目；`dify-usecase-playground` 有 4 个
 
-New corpus stats:
-
-- `dify-export-test`: node counts range from 3 to 190, median 15. Top node types:
-  `code` 744, `answer` 561, `if-else` 507, `assigner` 416,
-  `template-transform` 259, `llm` 202, `http-request` 133, `tool` 90, `end` 100.
-- `dify-export-test` tool providers: `workflow` 69 and `builtin` 21. This is
-  strong evidence that exported Dify workflows are often composed as reusable
-  sub-workflow tools.
-- `dify-usecase-playground`: node counts 3, 8, and 14. Node types include
-  `trigger-schedule`, `trigger-webhook`, `trigger-plugin`, `agent`, `tool`, `llm`,
-  `question-classifier`, `if-else`, and `code`.
-- New dependency evidence remains mostly marketplace: `dify-export-test` has 72
-  marketplace dependency entries; `dify-usecase-playground` has 4.
-
-## Detailed Samples
+## 详细样本
 
 ### BannyLon/DifyAIA
 
-- `文粹 AI——批量文档总结神器.yml`: advanced-chat, `0.3.1`, document extractor + iteration.
-- `票录精灵.yml`: advanced-chat, `0.3.1`, Feishu Base add records tool.
-- `架构魔法师.yml`: advanced-chat, `0.3.1`, document extractor + Mermaid converter tool.
-- `智票通 - 批量发票智能解析 (1).yml`: advanced-chat, `0.3.1`, invoice parsing, branches, Feishu spreadsheet tools.
-- `PDF 翻译 Agent.yml`: agent-chat, `0.3.1`, `model_config.agent_mode` with MCP tools and no workflow graph.
-- `Zapier MCP test.yml`: advanced-chat, `0.3.0`, MCP tool node.
-- `实时热点新闻聚合引擎（每日简报版）.yml`: advanced-chat, `0.3.0`, many RSS tools, code nodes, SMTP tool, aggregator.
-- `文生视频.yml`: advanced-chat, `0.3.0`, text-to-video tool.
-- `文思泉涌.yml`: workflow, `0.3.0`, iteration and code.
-- `智能合同卫士.yml`: workflow, `0.2.0`, document extraction and Markdown export tools.
-- `知识图解（KnowGraph）.yml`: workflow, `0.1.5`, nested iterations, notes, Jina tool, multiple ends.
+- `文粹 AI——批量文档总结神器.yml`：advanced-chat, `0.3.1`, document extractor + iteration
+- `票录精灵.yml`：advanced-chat, `0.3.1`, 飞书多维表格添加记录工具
+- `架构魔法师.yml`：advanced-chat, `0.3.1`, document extractor + Mermaid 转换工具
+- `智票通 - 批量发票智能解析 (1).yml`：advanced-chat, `0.3.1`, 发票解析、分支、飞书表格工具
+- `PDF 翻译 Agent.yml`：agent-chat, `0.3.1`, `model_config.agent_mode` 带 MCP 工具，无 workflow graph
+- `Zapier MCP test.yml`：advanced-chat, `0.3.0`, MCP tool 节点
+- `实时热点新闻聚合引擎（每日简报版）.yml`：advanced-chat, `0.3.0`, 多个 RSS 工具、code 节点、SMTP 工具、聚合器
+- `文生视频.yml`：advanced-chat, `0.3.0`, 文生视频工具
+- `文思泉涌.yml`：workflow, `0.3.0`, iteration 和 code
+- `智能合同卫士.yml`：workflow, `0.2.0`, 文档提取和 Markdown 导出工具
+- `知识图解（KnowGraph）.yml`：workflow, `0.1.5`, 嵌套 iteration、注释、Jina 工具、多个 end
 
 ### svcvit/Awesome-Dify-Workflow
 
-- `小支付-DEMO.yml`: advanced-chat, `0.3.0`, payment tools, assigner, branches.
-- `Artifact.yml`: advanced-chat, `0.2.0`, minimal LLM answer.
-- `MCP-amap.yml`: advanced-chat, `0.1.5`, agent node with MCP server parameter.
-- `图文知识库.yml`: advanced-chat, `0.1.5`, knowledge retrieval + LLM.
-- `Demo-tod_agent.yml`: advanced-chat, `0.1.5`, agent + conditional answer.
-- `记忆测试.yml`: advanced-chat, `0.1.2`, many assigners and conversation memory patterns.
-- `根据用户的意图进行回复.yml`: workflow, `0.1.0`, question classifier + knowledge retrieval + aggregator.
-- `文章仿写-单图_多图自动搭配.yml`: workflow, `0.1.0`, workflow provider tools, parameter extractors, iteration.
-- `搜索大师.yml`: advanced-chat, `0.1.0`, HTTP, search tools, iterations.
-- `simple-kimi.yml`: advanced-chat, `0.1.2`, list-operator, document extractor, multiple tool branches.
-- `json_translate.yml`: workflow, `0.1.3`, code + iteration + translate tool.
-- `runLLMCode.yml`: workflow, `0.1.4`, HTTP request + code execution pattern.
-- `Text to Card Iteration.yml`: workflow, `0.1.0`, parameter extractor + template.
-- `全书翻译.yml`: workflow, `0.1.2`, iteration plus canvas notes.
-- `旅行Demo.yml`: advanced-chat, `0.1.5`, agent + assigners + templates.
+- `小支付-DEMO.yml`：advanced-chat, `0.3.0`, 支付工具、assigner、分支
+- `Artifact.yml`：advanced-chat, `0.2.0`, 最简 LLM answer
+- `MCP-amap.yml`：advanced-chat, `0.1.5`, 带 MCP server 参数的 agent 节点
+- `图文知识库.yml`：advanced-chat, `0.1.5`, knowledge retrieval + LLM
+- `Demo-tod_agent.yml`：advanced-chat, `0.1.5`, agent + 条件 answer
+- `记忆测试.yml`：advanced-chat, `0.1.2`, 多个 assigner 和 conversation memory 模式
+- `根据用户的意图进行回复.yml`：workflow, `0.1.0`, question classifier + knowledge retrieval + aggregator
+- `文章仿写-单图_多图自动搭配.yml`：workflow, `0.1.0`, workflow provider 工具、parameter extractor、iteration
+- `搜索大师.yml`：advanced-chat, `0.1.0`, HTTP、搜索工具、iteration
+- `simple-kimi.yml`：advanced-chat, `0.1.2`, list-operator、document extractor、多个工具分支
+- `json_translate.yml`：workflow, `0.1.3`, code + iteration + 翻译工具
+- `runLLMCode.yml`：workflow, `0.1.4`, HTTP request + code 执行模式
+- `Text to Card Iteration.yml`：workflow, `0.1.0`, parameter extractor + template
+- `全书翻译.yml`：workflow, `0.1.2`, iteration 加画布注释
+- `旅行Demo.yml`：advanced-chat, `0.1.5`, agent + assigner + template
 
 ### wwwzhouhui/dify-for-dsl
 
-- `51-dify案例分享-...财报分析...HTML 可视化.yml`: advanced-chat, `0.5.0`, MinerU parse file + LLM + code.
-- `88-dify案例分享-...Nano Banana2AI画图.yml`: advanced-chat, `0.4.0`, package dependency and private image tool.
-- `85-dify案例分享-...Sora2...yml`: advanced-chat, `0.4.0`, package dependency and video tool.
-- `86-dify案例分享-Qwen3-VL+Dify...yml`: advanced-chat, `0.4.0`, HTTP + code + if-else multimodal flow.
-- `84-dify案例分享-...文生图+图生图插件...yml`: advanced-chat, `0.4.0`, two image tools and branch.
-- `83-dify案例分享-...即梦 4.0 多图生成...yml`: advanced-chat, `0.4.0`, HTTP/code multi-answer flow.
-- `79-dify案例分享-...MCP工具...yml`: advanced-chat, `0.3.0`, LLM + code + agent.
-- `76-dify案例分享-...通用票据识别...yml`: advanced-chat, `0.3.0`, multiple HTTP/code/LLM branches.
-- `74-dify案例分享-...秘塔搜索...yml`: workflow, `0.3.0`, 26-node search workflow, many code/end branches.
-- `73-dify案例分享-...发票申请预览...yml`: advanced-chat, `0.3.0`, Excel tool + LLM + code.
-- `69-dify案例分享-数学公式识别工作流.yml`: advanced-chat, `0.3.0`, PDF process tool + aggregator.
-- `58-dify案例分享-中小学数学错题本-生成同类型题.yml`: advanced-chat, `0.3.0`, database, time, Markdown export, iteration, question classifier.
-- `57-dify案例分享-中小学数学错题本-错题收集篇.yml`: advanced-chat, `0.3.0`, database + PDF process + iteration.
+- `51-dify案例分享-...财报分析...HTML 可视化.yml`：advanced-chat, `0.5.0`, MinerU 解析文件 + LLM + code
+- `88-dify案例分享-...Nano Banana2AI画图.yml`：advanced-chat, `0.4.0`, package dependency 和私有图像工具
+- `85-dify案例分享-...Sora2...yml`：advanced-chat, `0.4.0`, package dependency 和视频工具
+- `86-dify案例分享-Qwen3-VL+Dify...yml`：advanced-chat, `0.4.0`, HTTP + code + if-else 多模态流程
+- `84-dify案例分享-...文生图+图生图插件...yml`：advanced-chat, `0.4.0`, 两个图像工具和分支
+- `83-dify案例分享-...即梦 4.0 多图生成...yml`：advanced-chat, `0.4.0`, HTTP/code 多 answer 流程
+- `79-dify案例分享-...MCP工具...yml`：advanced-chat, `0.3.0`, LLM + code + agent
+- `76-dify案例分享-...通用票据识别...yml`：advanced-chat, `0.3.0`, 多个 HTTP/code/LLM 分支
+- `74-dify案例分享-...秘塔搜索...yml`：workflow, `0.3.0`, 26 节点搜索工作流，多个 code/end 分支
+- `73-dify案例分享-...发票申请预览...yml`：advanced-chat, `0.3.0`, Excel 工具 + LLM + code
+- `69-dify案例分享-数学公式识别工作流.yml`：advanced-chat, `0.3.0`, PDF 处理工具 + aggregator
+- `58-dify案例分享-中小学数学错题本-生成同类型题.yml`：advanced-chat, `0.3.0`, 数据库、时间、Markdown 导出、iteration、question classifier
+- `57-dify案例分享-中小学数学错题本-错题收集篇.yml`：advanced-chat, `0.3.0`, 数据库 + PDF 处理 + iteration
 
-## Additional Detailed Samples
+## 附加详细样本
 
 ### g-krishna0/dify-export-test
 
-- `Dify_Dsl_Github_Sync_Cron_OPTIMISED__v30.yml`: workflow, `0.3.1`, scheduled
-  or manually run DSL sync pattern. Uses code-heavy state/diff/export logic with
-  iteration helpers. Lesson: when logic is API pagination, state files, GitHub
-  commits, and normalized diffs, a few robust code nodes are clearer than a large
-  graph of small nodes.
-- `Auto_KB_Metadata_Extractor_v4.1.yml`: workflow, `0.3.1`, Dify Knowledge Base
-  metadata update. Uses HTTP requests, code parsing, if-else validation, LLM
-  extraction, iteration, and multiple error end paths. Lesson: external Dify API
-  automations need explicit failure branches for missing IDs, empty segments, API
-  errors, and partial success.
-- `Graph_Data_Extractor.yml`: workflow, `0.3.1`, file upload graph/chart data
-  extraction. Uses several LLM passes plus code/template. Lesson: visual or
-  document extraction workflows benefit from separating detection, extraction,
-  anti-hallucination verification, and final table formatting.
-- `Table_Data_Extractor__PDF_v6.yml`: workflow, `0.3.1`, PDF table extraction.
-  Uses code-heavy pdfplumber-style extraction, LLM cleanup, iteration, and
-  template output. Lesson: for large documents, deterministic extraction before
-  LLM cleanup saves tokens and reduces hallucination.
-- `Travel_Expenses_Form3_Validator.yml`: workflow, `0.3.1`, form validation and
-  deficiency email generation. Uses document extraction, knowledge retrieval,
-  variable aggregation, template transform, code, and end. Lesson: validation
-  workflows should use code for rule checks and templates for stable messages.
-- `SharePoint_Connector_Graph_API.yml`: workflow, `0.3.1`, Microsoft Graph
-  connector without a Dify plugin. Uses HTTP request, code, if-else, and variable
-  aggregator. Lesson: when no plugin exists, REST + code can emulate a connector,
-  but secrets must be environment variables/placeholders.
-- `D11QAEmail.yml`: advanced-chat, `0.3.1`, PC inspection support bot that calls
-  reusable workflows for bilingual processing, file validation, Excel extraction,
-  FAQ lookup, and email generation. Lesson: Chatflow is appropriate when the user
-  stays in a support conversation and reusable workflow tools do the heavy work.
-- `The_Smart_Voyager.yml`: advanced-chat, `0.3.1`, travel planner that delegates
-  experience, visa, logistics, and itinerary steps to workflow-provider tools.
-  Lesson: complex assistants can be Chatflow shells over smaller Workflow tools.
-- Repeated Excel extractor files: workflow, `0.3.1`, file upload plus
-  `document-extractor`, `list-operator`, `excel_2_csv` tool, code cleanup, LLM,
-  and several end branches. Lesson: file conversion and deterministic cleanup
-  should happen before asking an LLM to infer fields.
+- `Dify_Dsl_Github_Sync_Cron_OPTIMISED__v30.yml`：workflow, `0.3.1`, 定时或手动运行的 DSL 同步模式。使用 code 密集的状态/diff/导出逻辑和 iteration 辅助。经验：当逻辑是 API 分页、状态文件、GitHub 提交和标准化 diff 时，少量健壮的 code 节点比大量小节点的庞大图更清晰
+- `Auto_KB_Metadata_Extractor_v4.1.yml`：workflow, `0.3.1`, Dify 知识库元数据更新。使用 HTTP request、code 解析、if-else 验证、LLM 提取、iteration 和多个错误 end 路径。经验：外部 Dify API 自动化需要显式失败分支处理缺失 ID、空段、API 错误和部分成功
+- `Graph_Data_Extractor.yml`：workflow, `0.3.1`, 文件上传图表数据提取。使用多次 LLM 处理加 code/template。经验：视觉或文档提取工作流受益于将检测、提取、反幻觉验证和最终表格格式化分离
+- `Table_Data_Extractor__PDF_v6.yml`：workflow, `0.3.1`, PDF 表格提取。使用 code 密集的 pdfplumber 风格提取、LLM 清洗、iteration 和 template 输出。经验：大文档在 LLM 清洗前做确定性提取可节省 token 并减少幻觉
+- `Travel_Expenses_Form3_Validator.yml`：workflow, `0.3.1`, 表单验证和缺陷邮件生成。使用 document extraction、knowledge retrieval、variable aggregation、template transform、code 和 end。经验：验证工作流应用 code 做规则检查，用 template 做稳定消息
+- `SharePoint_Connector_Graph_API.yml`：workflow, `0.3.1`, 无 Dify 插件的 Microsoft Graph 连接器。使用 HTTP request、code、if-else 和 variable aggregator。经验：无插件时 REST + code 可模拟连接器，但密钥必须是环境变量/占位符
+- `D11QAEmail.yml`：advanced-chat, `0.3.1`, PC 检查支持机器人，调用可复用工作流做双语处理、文件验证、Excel 提取、FAQ 查找和邮件生成。经验：当用户在支持对话中且可复用工作流工具承担主要工作时，Chatflow 是合适的选择
+- `The_Smart_Voyager.yml`：advanced-chat, `0.3.1`, 旅行规划器，将经验、签证、物流和行程步骤委托给 workflow-provider 工具。经验：复杂助手可以是 Chatflow 外壳加较小的 Workflow 工具
+- 重复的 Excel 提取器文件：workflow, `0.3.1`, 文件上传加 `document-extractor`、`list-operator`、`excel_2_csv` 工具、code 清洗、LLM 和多个 end 分支。经验：文件转换和确定性清洗应在让 LLM 推断字段之前完成
 
-Common tool names in this repo:
+此仓库常见工具名称：
 
-- Workflow-provider tools: `comBilingualWorkflow` 19, `excel_extractor_v4` 17,
-  `comFileValidator` 16, `email_gen_v1` 6, `PC_inspection` 4.
-- Built-in tools: `md_to_pdf` 11, `excel_2_csv` 7, `word_2_pdf` 2, `zip` 1.
+- Workflow-provider 工具：`comBilingualWorkflow` 19、`excel_extractor_v4` 17、`comFileValidator` 16、`email_gen_v1` 6、`PC_inspection` 4
+- 内置工具：`md_to_pdf` 11、`excel_2_csv` 7、`word_2_pdf` 2、`zip` 1
 
 ### Petrus-Han/dify-usecase-playground
 
-- `daily-news-slack/workflow.yml`: workflow, `0.5.0`, schedule trigger -> agent
-  with Yahoo/current-time tools -> Slack webhook. Lesson: scheduled digests are
-  Workflow, not Chatflow; the output can be a side-effect tool call.
-- `slack-news-researcher/workflow.yml`: workflow, `0.5.0`, plugin trigger ->
-  question classifier -> agent/LLM branches -> Slack webhook. Lesson: message
-  event workflows can classify whether to use research tools or generate a normal
-  response before sending back to Slack.
-- `confluence-to-feishu/workflow.yml`: workflow, `0.6.0`, webhook trigger ->
-  code payload parsing -> if-else event routing -> Feishu message tools. Lesson:
-  webhook automations should normalize payloads in code first, then branch by
-  event type and build deterministic message cards.
+- `daily-news-slack/workflow.yml`：workflow, `0.5.0`, schedule trigger → agent 带 Yahoo/current-time 工具 → Slack webhook。经验：定时摘要用 Workflow 而非 Chatflow；输出可以是副作用工具调用
+- `slack-news-researcher/workflow.yml`：workflow, `0.5.0`, plugin trigger → question classifier → agent/LLM 分支 → Slack webhook。经验：消息事件工作流可分类是否使用研究工具或生成普通回复后发回 Slack
+- `confluence-to-feishu/workflow.yml`：workflow, `0.6.0`, webhook trigger → code payload 解析 → if-else 事件路由 → 飞书消息工具。经验：webhook 自动化应先在 code 中标准化 payload，再按事件类型分支并构建确定性消息卡片
 
-## Observed Version And Mode Reality
+## 观察到的版本和模式现实
 
-- Public DSLs commonly use `0.1.0` to `0.5.0`; not every runnable workflow uses
-  the latest official DSL version.
-- The first three inspected repositories had no parsed `0.6.0` exports. A later
-  2026-05-11 scan found one public `0.6.0` workflow in
-  `Petrus-Han/dify-usecase-playground`, so public `0.6.0` evidence exists but is
-  still sparse.
-- `advanced-chat` dominates recent examples; `workflow` remains common for batch
-  runs and multi-end automation.
-- Triggered integration automations in the new samples use `workflow`, even when
-  they respond into Slack/Feishu rather than returning a normal `end` output.
-- `agent-chat` examples often use top-level `model_config`, not
-  `workflow.graph.nodes`.
-- Some YAML files write `version: 0.3.0` without quotes. YAML parsers commonly
-  keep multi-dot versions as strings, but generated DSL should still quote
-  versions for safety.
+- 公共 DSL 常用 `0.1.0` 到 `0.5.0`；不是每个可运行的工作流都使用最新官方 DSL 版本
+- 前三个检查的仓库没有解析到 `0.6.0` 导出。后续 2026-05-11 扫描在 `Petrus-Han/dify-usecase-playground` 中发现了一个公共 `0.6.0` 工作流，所以公共 `0.6.0` 证据存在但仍稀少
+- `advanced-chat` 在近期示例中占主导；`workflow` 在批量运行和多端点自动化中仍常见
+- 新样本中的触发式集成自动化使用 `workflow`，即使它们响应到 Slack/飞书而非返回普通 `end` 输出
+- `agent-chat` 示例常使用顶层 `model_config`，而非 `workflow.graph.nodes`
+- 部分 YAML 文件写 `version: 0.3.0` 不带引号。YAML 解析器通常将多点版本保持为字符串，但生成的 DSL 仍应引号包裹版本以确保安全
 
-## Tool Node Reality
+## 工具节点现实
 
-Real tool nodes vary more than the clean schema:
+真实工具节点比干净 schema 变化更大：
 
-- `provider_type` appears as `builtin`, `api`, `workflow`, and `mcp`.
-- Many valid tool nodes do not include `plugin_id` or `plugin_unique_identifier`
-  inside the node, even when the app has top-level dependencies.
-- `tool_node_version` is useful but not always present.
-- `paramSchemas`, `params`, and `is_team_authorization` appear frequently in
-  newer exports and should be preserved when copied from real DSL.
-- MCP tools can appear as normal workflow tool nodes or inside
-  `model_config.agent_mode.tools`.
-- Workflow-provider tools can reference local/custom workflows with UUID-like
-  provider IDs and no marketplace dependency.
-- In `dify-export-test`, workflow-provider tools are the majority of tool nodes.
-  Treat them as powerful but workspace-specific; never invent provider UUIDs.
+- `provider_type` 出现为 `builtin`、`api`、`workflow` 和 `mcp`
+- 许多有效工具节点在节点内不包含 `plugin_id` 或 `plugin_unique_identifier`，即使应用有顶层 dependency
+- `tool_node_version` 有用但不总是存在
+- `paramSchemas`、`params` 和 `is_team_authorization` 在较新导出中频繁出现，从真实 DSL 复制时应保留
+- MCP 工具可作为普通 workflow tool 节点出现，也可在 `model_config.agent_mode.tools` 内出现
+- Workflow-provider 工具可引用本地/自定义工作流，provider ID 为 UUID 形式且无 marketplace dependency
+- 在 `dify-export-test` 中，workflow-provider 工具占工具节点的多数。将它们视为强大但工作区特定的；永远不要编造 provider UUID
 
-## Trigger And Integration Reality
+## 触发器和集成现实
 
-- Real trigger workflows may start with `trigger-schedule`, `trigger-webhook`, or
-  `trigger-plugin` instead of a `start` node.
-- Public trigger samples may omit an `end` node when the job's purpose is a
-  side-effect such as Slack/Feishu notification. For user-run workflows where the
-  caller needs returned values, still include `end`.
-- Schedule exports include both `cron_expression` and visual config/timezone
-  fields; these may need reconfiguration after import.
-- Webhook exports keep `webhook_url` and `webhook_debug_url` empty. Do not fill
-  them with fake URLs.
-- Plugin trigger schemas are plugin-specific. Copy from a current export rather
-  than extrapolating.
+- 真实触发器工作流可能以 `trigger-schedule`、`trigger-webhook` 或 `trigger-plugin` 而非 `start` 节点开始
+- 公共触发器样本可能省略 `end` 节点，当任务目的是副作用（如 Slack/飞书通知）时。对于调用者需要返回值的用户运行工作流，仍需包含 `end`
+- 定时导出包含 `cron_expression` 和 visual config/timezone 字段；导入后可能需要重新配置
+- Webhook 导出保持 `webhook_url` 和 `webhook_debug_url` 为空。不要用假 URL 填充
+- 插件触发器 schema 是插件特定的。从当前导出复制，而不是外推
 
-## Business Workflow Reality
+## 业务工作流现实
 
-- File and office-document workflows often combine file upload, document
-  extraction/conversion tools, code cleanup, LLM interpretation, if-else error
-  branches, and templated outputs.
-- Enterprise approval, inspection, travel expense, and QA workflows are usually
-  `workflow` when they transform or validate records, but `advanced-chat` when a
-  human continues asking follow-up questions.
-- Integration workflows often need secrets and endpoint IDs as environment
-  variables. Public examples sometimes embed placeholders or static-looking
-  descriptions; generated DSL should not hardcode real tokens.
-- Complex assistant products can be designed as a Chatflow shell that delegates
-  deterministic sub-tasks to smaller Workflow apps exposed as workflow-provider
-  tools.
-- For stateful sync jobs, code nodes can legitimately carry most of the logic
-  because Dify graph nodes are less ergonomic for API pagination, diffing,
-  packaging, and commit state.
+- 文件和办公文档工作流常组合文件上传、文档提取/转换工具、code 清洗、LLM 解释、if-else 错误分支和模板化输出
+- 企业审批、检查、差旅报销和 QA 工作流在转换或验证记录时通常是 `workflow`，但人在继续追问时是 `advanced-chat`
+- 集成工作流常需要密钥和端点 ID 作为环境变量。公共示例有时嵌入占位符或静态描述；生成的 DSL 不应硬编码真实 token
+- 复杂助手产品可设计为 Chatflow 外壳，将确定性子任务委托给暴露为 workflow-provider 工具的较小 Workflow 应用
+- 有状态同步任务中，code 节点可合理承担大部分逻辑，因为 Dify 图节点在 API 分页、diff、打包和提交状态方面不太符合人体工程学
 
-## Generator Project Lessons
+## 生成器项目经验
 
-`TheOneWithChair/Dify-DSL-generator` is similar in goal but wraps generation in a
-Streamlit app and Gemini API. Useful ideas to borrow:
+`TheOneWithChair/Dify-DSL-generator` 目标类似但用 Streamlit 应用和 Gemini API 包装生成。可借鉴的思路：
 
-- Ask or infer workflow type early: Chatflow maps to Dify `advanced-chat`; normal
-  automations map to `workflow`.
-- Capture expected input, expected output, required tools, and complexity before
-  writing YAML.
-- Keep node docs in separate files and load only relevant node references.
-- Validate and post-process generated YAML instead of trusting raw model output.
-- Support refinement of an existing DSL from natural-language feedback.
+- 尽早询问或推断工作流类型：Chatflow 映射到 Dify `advanced-chat`；普通自动化映射到 `workflow`
+- 写 YAML 前收集预期输入、预期输出、所需工具和复杂度
+- 节点文档放独立文件，仅加载相关节点参考
+- 验证和后处理生成的 YAML，而不是信任原始模型输出
+- 支持从自然语言反馈细化现有 DSL
 
-Differences for this skill:
+本技能的差异：
 
-- Do not require `GEMINI_API_KEY`, `DIFY_API_KEY`, or a Streamlit UI. The agent
-  using this skill is the generator.
-- Target official `version: "0.6.0"` for new DSL, while treating old samples as
-  compatibility/workflow-design evidence.
-- Prefer exported plugin/tool nodes for reliability instead of synthesizing exact
-  plugin schemas from names alone.
+- 不需要 `GEMINI_API_KEY`、`DIFY_API_KEY` 或 Streamlit UI。使用此技能的 Agent 就是生成器
+- 新 DSL 以官方 `version: "0.6.0"` 为目标，旧样本仅作为兼容性/工作流设计证据
+- 优先使用导出的插件/工具节点确保可靠性，而不是仅从名称合成精确的插件 schema
 
-## Dependency Reality
+## 依赖现实
 
-Dependencies are not only marketplace entries.
+依赖不仅仅是 marketplace 条目。
 
-Marketplace dependency:
+依赖条目格式（marketplace / package / github）的完整 YAML 示例见 `dsl-structure.md` 的 Dependencies 章节。
 
-```yaml
-- current_identifier: null
-  type: marketplace
-  value:
-    marketplace_plugin_unique_identifier: langgenius/openai:0.0.23@...
-    version: null
-```
+旧版或自定义工作流可能在使用内置、MCP、API 或 workflow 工具时仍有 `dependencies: []`。
 
-Package dependency:
+## 画布和辅助节点
 
-```yaml
-- current_identifier: null
-  type: package
-  value:
-    plugin_unique_identifier: wwwzhouhui/nano_banana2_text2image:0.0.1@...
-    version: null
-```
+- `custom-note` 节点在复杂公共 DSL 中常见。它们可能有空的 `data.type`，应视为画布注释而非可执行节点
+- Iteration 导出包含 `iteration` 加 `iteration-start`（wrapper `custom-iteration-start`）
+- 部分旧 iteration 子边缺少所有较新的 loop/iteration 标记；从真实导出复制比手写嵌套图元数据更安全
 
-Official current Dify also supports GitHub-installed plugin dependencies:
+## 本技能的规则修正
 
-```yaml
-- current_identifier: null
-  type: github
-  value:
-    repo: author/plugin-repo
-    version: 0.0.1
-    package: plugin-package-name
-    github_plugin_unique_identifier: author/plugin:0.0.1@...
-```
-
-Older or custom workflows may have `dependencies: []` even while using built-in,
-MCP, API, or workflow tools.
-
-## Canvas And Helper Nodes
-
-- `custom-note` nodes are common in complex public DSLs. They may have empty
-  `data.type` and should be treated as canvas annotations, not executable nodes.
-- Iteration exports include `iteration` plus `iteration-start` with wrapper
-  `custom-iteration-start`.
-- Some older iteration child edges lack all newer loop/iteration flags; copying
-  a real export is safer than hand-inventing nested graph metadata.
-
-## Rule Corrections For This Skill
-
-- Do not require `plugin_id` or `tool_node_version` for every tool node.
-- Do require `provider_id`, `provider_name`, `provider_type`, `tool_name`,
-  `tool_label`, and `tool_parameters` for executable workflow tool nodes.
-- Preserve `paramSchemas` and `params` when copying a real node.
-- Support dependency `type: package` and `type: github` as well as
-  `type: marketplace`.
-- Treat `custom-note` as valid non-executable metadata.
-- Treat `agent-chat`, `chat`, and `completion` as model-config apps, not graph
-  workflows, unless a graph is present.
-- Default generated apps to `workflow`; switch to `advanced-chat` for Chatflow,
-  memory, `sys.query`, `sys.files`, and `answer` nodes.
-- Treat trigger-driven Slack/Feishu/webhook/schedule automations as `workflow`.
-- Prefer generated `workflow` or `advanced-chat` for new work, but understand
-  legacy/public DSLs when reviewing or adapting.
-- For new generated DSL, use official `version: "0.6.0"` and only borrow graph
-  patterns from these older public samples.
+- 不要求每个工具节点都有 `plugin_id` 或 `tool_node_version`
+- 可执行 workflow tool 节点确实要求 `provider_id`、`provider_name`、`provider_type`、`tool_name`、`tool_label` 和 `tool_parameters`
+- 从真实节点复制时保留 `paramSchemas` 和 `params`
+- 支持 dependency `type: package` 和 `type: github` 以及 `type: marketplace`
+- 将 `custom-note` 视为有效的非可执行元数据
+- 将 `agent-chat`、`chat` 和 `completion` 视为 model-config 应用，而非图工作流，除非存在图
+- 生成的应用默认 `workflow`；需要 Chatflow、memory、`sys.query`、`sys.files` 和 `answer` 节点时切换为 `advanced-chat`
+- 将触发器驱动的 Slack/飞书/webhook/定时自动化视为 `workflow`
+- 新工作优先生成 `workflow` 或 `advanced-chat`，但理解遗留/公共 DSL 用于审查或适配
+- 新生成 DSL 使用官方 `version: "0.6.0"`，仅从这些旧公共样本借鉴图模式

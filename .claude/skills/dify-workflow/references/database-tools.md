@@ -10,51 +10,33 @@
 
 ---
 
-# Database Tool Nodes
-
-This reference distills database read/write patterns from user-provided Dify
-exports. The important takeaway is the tool-node envelope plus safe SQL parameter
-binding.
-
-## Contents
-
-- Two useful plugin patterns
-- `spance/db_client_node` insert and read templates
-- Duplicate check pattern
-- `hjlarry/database` SQL execute template
-- NL2SQL retrieval pattern
-- SQL safety checklist
-
-## Two Useful Plugin Patterns
+## 两种常用插件模式
 
 ### `spance/db_client_node`
 
-Use when Dify has configured a named PostgreSQL client tool such as
-`postgres_node_5` or `postgres_node_10`.
+当 Dify 配置了命名 PostgreSQL 客户端工具（如 `postgres_node_5` 或 `postgres_node_10`）时使用。
 
-- Plugin dependency: `spance/db_client_node:0.1.47@...`
-- Provider: `spance/db_client_node/db_client_node`
-- Tool names: `postgres_node_5`, `postgres_node_10`
-- Dynamic values are passed as `arg0`...`arg4` or `arg0`...`arg9`
-- SQL placeholders are `$arg0`, `$arg1`, ...
-- The DB connection is handled by the Dify tool authorization/config, not by YAML
+- 插件依赖：`spance/db_client_node:0.1.47@...`
+- Provider：`spance/db_client_node/db_client_node`
+- 工具名称：`postgres_node_5`、`postgres_node_10`
+- 动态值通过 `arg0`...`arg4` 或 `arg0`...`arg9` 传递
+- SQL 占位符为 `$arg0`、`$arg1`、...
+- 数据库连接由 Dify 工具授权/配置处理，不在 YAML 中
 
 ### `hjlarry/database`
 
-Use for a general SQL execute tool where the SQL comes from a previous node.
+用于通用 SQL 执行工具，SQL 来自前序节点。
 
-- Plugin dependency: `hjlarry/database:0.0.6@...`
-- Provider: `hjlarry/database/database`
-- Tool name: `sql_execute`
-- Parameters: `query`, optional `db_uri`
-- Configurations: `format` (`json`, `csv`, `yaml`, `md`, `xlsx`, `html`),
-  optional `config_options`
-- Good for SELECT after an LLM/parameter-extractor chooses a query
+- 插件依赖：`hjlarry/database:0.0.6@...`
+- Provider：`hjlarry/database/database`
+- 工具名称：`sql_execute`
+- 参数：`query`，可选 `db_uri`
+- 配置：`format`（`json`、`csv`、`yaml`、`md`、`xlsx`、`html`），可选 `config_options`
+- 适合 LLM/parameter-extractor 选定查询后的 SELECT
 
-## `spance/db_client_node` Insert Template
+## `spance/db_client_node` 插入模板
 
-This is the corrected write pattern for parsed document records. Avoid the
-trailing comma after the final column name.
+这是解析文档记录的正确写入模式。避免列名列表末尾的尾逗号。
 
 ```yaml
 title: "把文档内容插入数据库"
@@ -125,10 +107,9 @@ tool_parameters:
 selected: false
 ```
 
-When writing a new table, map every dynamic value to an `argN` and keep SQL
-static. Do not assemble SQL by string interpolation in an LLM prompt.
+写入新表时，将每个动态值映射到 `argN`，保持 SQL 静态。不要在 LLM prompt 中通过字符串拼接组装 SQL。
 
-## `spance/db_client_node` Read Template
+## `spance/db_client_node` 读取模板
 
 ```yaml
 title: "读取摘要放到上下文里"
@@ -173,9 +154,9 @@ tool_parameters:
 selected: false
 ```
 
-Use this pattern to load candidate documents/summaries into a later LLM prompt.
+用此模式将候选文档/摘要加载到后续 LLM prompt 中。
 
-## Duplicate Check Pattern
+## 去重检查模式
 
 ```yaml
 tool_parameters:
@@ -205,14 +186,11 @@ tool_parameters:
       ) AS file_exists;
 ```
 
-Follow with an `if-else` condition against the tool output. Inspect the imported
-tool output shape in Dify (`data`, `text`, or `result`) because plugin versions
-can differ.
+后接 `if-else` 节点对工具输出做条件判断。在 Dify 中检查导入后的工具输出形状（`data`、`text` 或 `result`），因为插件版本可能不同。
 
-## `hjlarry/database` SQL Execute Template
+## `hjlarry/database` SQL 执行模板
 
-Use this after an LLM creates a SELECT and a parameter-extractor returns a clean
-`SQL` string.
+在 LLM 生成 SELECT 语句且 parameter-extractor 返回干净的 `SQL` 字符串后使用。
 
 ```yaml
 title: "查询具体需要的数据"
@@ -244,8 +222,7 @@ tool_parameters:
 selected: false
 ```
 
-If the target workspace has no database authorization, set `db_uri` from an
-environment variable instead of hardcoding a secret:
+如果目标工作区没有数据库授权，通过环境变量设置 `db_uri`，而不是硬编码密钥：
 
 ```yaml
 tool_parameters:
@@ -257,42 +234,37 @@ tool_parameters:
     value: "{{#1777540352910.SQL#}}"
 ```
 
-## NL2SQL Retrieval Pattern
+## NL2SQL 检索模式
 
-1. `spance/db_client_node` reads summaries and filenames for the current user.
-2. LLM receives user question plus summary list and outputs a SQL query or empty
-   string.
-3. `parameter-extractor` extracts field `SQL`.
-4. `if-else` checks `SQL` is `not empty`.
-5. `hjlarry/database` executes the SQL in `json` format.
-6. `template-transform` optionally formats the JSON result.
-7. LLM or `answer` responds to the user.
+1. `spance/db_client_node` 读取当前用户的摘要和文件名
+2. LLM 接收用户问题加摘要列表，输出 SQL 查询或空字符串
+3. `parameter-extractor` 提取字段 `SQL`
+4. `if-else` 检查 `SQL` 是否 `not empty`
+5. `hjlarry/database` 以 `json` 格式执行 SQL
+6. `template-transform` 可选格式化 JSON 结果
+7. LLM 或 `answer` 回复用户
 
-Prompt guard for step 2:
+步骤 2 的 prompt 防护：
 
 ```text
-Generate SQL only. If the document cannot be determined, output an empty string.
-Rules:
-- SELECT only.
-- Query only whitelisted fields: json_table_content.
-- Table: agent_test.ai_document_parse_record.
-- Always include user_id = '{{#sys.user_id#}}' or a parameter-bound equivalent.
-- Match file_name exactly from the provided list. Do not invent file names.
-- No markdown fences, no explanation.
+仅生成 SQL。如果无法确定文档，输出空字符串。
+规则：
+- 仅 SELECT。
+- 仅查询白名单字段：json_table_content。
+- 表：agent_test.ai_document_parse_record。
+- 始终包含 user_id = '{{#sys.user_id#}}' 或等效的参数绑定。
+- 从提供的列表中精确匹配 file_name。不要编造文件名。
+- 无 Markdown 围栏，无解释。
 ```
 
-For stronger safety, do not let the LLM insert `sys.user_id` directly into SQL.
-Instead, have it select a file name or ID, then use a fixed parameterized SQL tool
-node with `$arg0`/`$arg1`.
+为增强安全性，不要让 LLM 直接将 `sys.user_id` 插入 SQL。而是让它选择文件名或 ID，然后使用带 `$arg0`/`$arg1` 的固定参数化 SQL 工具节点。
 
-## SQL Safety Checklist
+## SQL 安全检查清单
 
-- Use `$argN` placeholders for user/file/model values.
-- Never leave a trailing comma before `)` in `INSERT` column lists.
-- For public templates, avoid `DELETE`, `UPDATE`, `DROP`, `TRUNCATE`, and `ALTER`
-  unless the workflow is explicitly an admin workflow.
-- Validate LLM-generated SQL with a parameter-extractor and an `if-else` gate.
-- Restrict SELECT queries to expected schemas and columns.
-- Do not put DB URI passwords in the DSL; use Dify authorization or `env.DB_URI`.
-- Tool output field names vary by plugin. After import, inspect the tool node's
-  actual output and adjust downstream selectors.
+- 用户/文件/模型值使用 `$argN` 占位符
+- `INSERT` 列表中 `)` 前不留尾逗号
+- 公共模板避免 `DELETE`、`UPDATE`、`DROP`、`TRUNCATE` 和 `ALTER`，除非工作流明确是管理工作流
+- 用 parameter-extractor 和 `if-else` 门控验证 LLM 生成的 SQL
+- SELECT 查询限制在预期的 schema 和列内
+- 不要在 DSL 中放数据库 URI 密码；使用 Dify 授权或 `env.DB_URI`
+- 工具输出字段名因插件而异。导入后检查工具节点的实际输出并调整下游 selector

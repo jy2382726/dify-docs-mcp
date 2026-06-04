@@ -40,10 +40,33 @@ query_docs_filesystem_dify_docs(command="cat /en/use-dify/nodes/llm.mdx")
 query_docs_filesystem_dify_docs(command="rg 'variable' /en/use-dify/nodes/")
 ```
 
+## 降级触发判断
+
+在决定是否使用 MCP 前，先判断可用性：
+
+1. **检查 MCP 工具是否存在**：如果 `search_dify_docs` 和 `query_docs_filesystem_dify_docs` 不在可用工具列表中，直接进入降级模式，不要尝试调用
+2. **首次调用失败时降级**：如果工具存在但调用返回错误（超时、连接拒绝、认证失败等），本次任务不再重试，立即降级
+3. **不需要时不调用**：节点在 `node-schemas.md` 的 26 个 Schema 中且用户未指定特殊版本，直接使用本地 Schema，不调用 MCP
+
+判断流程：
+
+```
+需要查文档？
+├─ 节点在本地 26 个 Schema 中 → 用本地 Schema，不调用 MCP
+├─ 节点不在 Schema 中 → 尝试调用 MCP
+│   ├─ MCP 工具不可用 → 进入降级模式
+│   ├─ 调用成功 → 使用 MCP 结果
+│   └─ 调用失败 → 进入降级模式，本次不再重试
+└─ 用户指定非 v0.6.0 版本 → 尝试调用 MCP
+    ├─ 调用成功 → 使用 MCP 结果
+    └─ 调用失败 → 进入降级模式
+```
+
 ## 降级策略
 
 当 Mintlify MCP 不可用时：
 1. 使用 references/node-schemas.md 中的 Schema
 2. 使用 references/templates/ 中的模板
 3. 对于不确定的配置，返回 warning 提示用户手动确认
-4. 不报错，确保 Skill 功能 100% 可用
+4. 告知用户："MCP 不可用，使用本地 reference，生成的 DSL 需要 Dify 导入测试"
+5. 不报错，确保 Skill 功能 100% 可用

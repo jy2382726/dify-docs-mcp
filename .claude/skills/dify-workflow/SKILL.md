@@ -66,6 +66,158 @@ workflow variables/features, and a ReactFlow-like graph of nodes and edges.
 完整官方规范：`references/official-0.6-target.md`
 完整插件规则：`references/plugin-marketplace-tools.md`
 
+## 最小端到端示例
+
+最简单的 `workflow` 模式工作流：start → llm → end。
+
+```yaml
+app:
+  name: "文本摘要"
+  description: "输入文本，返回摘要"
+  icon: "🤖"
+  icon_type: emoji
+  icon_background: "#FFEAD5"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods: [local_file, remote_url]
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: [local_file, remote_url]
+      number_limits: 3
+    opening_statement: ""
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+  graph:
+    nodes:
+      - data:
+          title: "开始"
+          type: start
+          variables:
+            - label: "输入文本"
+              variable: input_text
+              type: paragraph
+              required: true
+              max_length: 50000
+          selected: false
+        id: "1770000000000"
+        position: { x: 100, y: 300 }
+        positionAbsolute: { x: 100, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      - data:
+          title: "生成摘要"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-flash
+            mode: chat
+            completion_params:
+              temperature: 0.3
+          prompt_template:
+            - id: 9e05cb8e-0000-4000-9000-000000000001
+              role: system
+              text: "你是一个精确的摘要助手。"
+            - id: 9e05cb8e-0000-4000-9000-000000000002
+              role: user
+              text: "请为以下文本生成摘要：\n\n{{#1770000000000.input_text#}}"
+          context:
+            enabled: false
+            variable_selector: []
+          vision:
+            enabled: false
+          selected: false
+        id: "1770000000001"
+        position: { x: 400, y: 300 }
+        positionAbsolute: { x: 400, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      - data:
+          title: "结束"
+          type: end
+          outputs:
+            - variable: summary
+              value_selector: ["1770000000001", text]
+          selected: false
+        id: "1770000000002"
+        position: { x: 700, y: 300 }
+        positionAbsolute: { x: 700, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+    edges:
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: start
+          targetType: llm
+        id: 1770000000000-source-1770000000001-target
+        selected: false
+        source: "1770000000000"
+        sourceHandle: source
+        target: "1770000000001"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: llm
+          targetType: end
+        id: 1770000000001-source-1770000000002-target
+        selected: false
+        source: "1770000000001"
+        sourceHandle: source
+        target: "1770000000002"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8
+```
+
+更多完整示例见 `examples/` 目录：
+
+| 文件 | 类型 | 说明 |
+|------|------|------|
+| `examples/rag-workflow.yaml` | workflow | RAG 知识检索工作流 |
+| `examples/chatflow-multi-turn.yaml` | advanced-chat | 多轮对话 Chatflow |
+| `examples/conditional-branch.yaml` | workflow | 条件分支工作流 |
+
 ## Validation Checklist
 
 校验 DSL 前：

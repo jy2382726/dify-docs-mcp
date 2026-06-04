@@ -48,3 +48,27 @@ Claude Code 生成 DSL 后，按此 checklist 逐项检查：
 1. 先检查 Error 级别（必须全部通过）
 2. 再检查 Warning 级别（尽量通过，无法修复则提示用户）
 3. 校验通过后交付 DSL；发现错误时自动修复后重新输出
+
+## 常见错误→修复模式
+
+校验脚本报错时，按以下模式修复：
+
+| 错误信息 | 原因 | 修复方式 |
+|---------|------|---------|
+| `YAML parse failed` | YAML 语法错误（缩进、引号、特殊字符） | 检查缩进是否为 2 空格；字符串含 `:` `#` `{}` 时加引号 |
+| `version must be a string` | version 未加引号 | 改为 `version: "0.6.0"` |
+| `app.mode is missing or unsupported` | mode 值拼写错误或缺失 | 使用 `workflow` 或 `advanced-chat` |
+| `workflow.graph.nodes is missing` | graph 模式缺少 nodes | 添加 `graph.nodes: []` 至少包含 start 和 end/answer |
+| `Duplicate node id` | 节点 ID 重复 | 重新生成唯一 ID（时间戳格式 `17700000000XX`） |
+| `Node missing data.type` | 节点缺少类型字段 | 在 `data` 中添加 `type` 字段（如 `llm`、`code`） |
+| `Edge source does not exist` | 边引用了不存在的节点 | 检查 `source` 和 `target` 是否为已存在的节点 ID |
+| `sourceType does not match node type` | 边的 sourceType 与节点类型不匹配 | 将边的 `sourceType` 改为源节点的 `data.type`；iteration-start 节点用 `iteration-start`，loop-start 用 `loop-start` |
+| `missing prompt_template list` | LLM 节点缺少 prompt 模板 | 添加 `prompt_template` 列表，至少一条 user 消息 |
+| `must define def main` | Python code 节点缺少 main 函数 | 在 code 中添加 `def main(...) -> dict:` |
+| `missing outputs mapping` | Code 节点缺少 outputs | 添加 `outputs` 字典，key 与 main 返回值对应 |
+| `missing provider_id / tool_name` | Tool 节点缺少必填字段 | 补齐 `provider_id`、`provider_name`、`provider_type`、`tool_name`、`tool_parameters` |
+| `missing cases list` | if-else 节点缺少分支 | 添加 `cases` 列表，至少一个条件分支 |
+| `Duplicate edge id` | 边 ID 重复 | 重新生成唯一边 ID（格式 `{source}-source-{target}-target`） |
+| `SQL trailing comma` | INSERT 语句列名列表末尾有逗号 | 删除 `)` 前的多余逗号 |
+| `Variable reference points to unknown node` | `{{#node_id.field#}}` 引用了不存在的节点 | 检查 node_id 是否正确；确认节点在引用点之前已定义 |
+| `dependencies type unsupported` | 依赖类型拼写错误 | 使用 `marketplace`、`package` 或 `github` |

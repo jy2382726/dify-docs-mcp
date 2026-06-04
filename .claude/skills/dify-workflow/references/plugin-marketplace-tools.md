@@ -11,54 +11,45 @@
 
 ---
 
-# Plugin Marketplace Tool Nodes
+## 目录
 
-Use this reference when a workflow needs a Dify tool that is not already covered
-by local exported examples.
+- 可靠性阶梯
+- 新工具推荐流程
+- 工具节点身份模板
+- `paramSchemas` 指引
+- 授权与密钥
+- 何时拒绝担保
 
-## Contents
+## 可靠性阶梯
 
-- Reliability ladder
-- Preferred workflow for new tools
-- Tool node identity template
-- `paramSchemas` guidance
-- Authorization and secrets
-- When to refuse a guarantee
-
-## Reliability Ladder
-
-| Evidence available | Reliability | How to proceed |
+| 可用证据 | 可靠性 | 操作方式 |
 | --- | --- | --- |
-| Minimal exported DSL from the user's Dify workspace | Highest | Copy the node envelope, dependency, `paramSchemas`, `tool_configurations`, and `tool_parameters`; then adapt values only. |
-| Plugin source repo or `.difypkg` package | High | Read `manifest.yaml`, provider YAML, tool YAML, and Python implementation; infer the DSL node and warn that import should still be tested. |
-| Official marketplace page only | Medium | Use visible plugin/version/tool info if available, but mark the node as a candidate because parameter schema and authorization details may be incomplete. |
-| Tool name only | Low | Do not claim it will work. Ask for an export, source/package, or screenshot. Generate only a placeholder/draft if the user explicitly accepts the risk. |
+| 用户 Dify 工作区的最小导出 DSL | 最高 | 复制节点外壳、dependency、`paramSchemas`、`tool_configurations` 和 `tool_parameters`；仅修改 value 字段。 |
+| 插件源码仓库或 `.difypkg` 包 | 高 | 读取 `manifest.yaml`、provider YAML、tool YAML 和 Python 实现；推断 DSL 节点并提醒仍需导入测试。 |
+| 仅官方 marketplace 页面 | 中 | 使用可见的插件/版本/工具信息（如有），但标记节点为候选，因为参数 schema 和授权细节可能不完整。 |
+| 仅工具名称 | 低 | 不要声称可用。要求导出、源码/包或截图。仅在用户明确接受风险时生成占位/草稿。 |
 
-## Preferred Workflow For New Tools
+## 新工具推荐流程
 
-1. Ask for a minimal export when possible: create a blank Dify workflow, add the
-   target tool node, configure authorization and one sample parameter, export DSL.
-2. Extract these fields from the export:
-   `dependencies`, `provider_id`, `provider_name`, `provider_type`, `plugin_id`,
-   `plugin_unique_identifier`, `tool_name`, `tool_label`, `tool_description`,
-   `tool_node_version`, `paramSchemas`, `params`, `tool_configurations`, and
-   `tool_parameters`.
-3. Keep the copied identity fields unchanged. Only change parameter `value` fields,
-   node IDs, titles, and graph positions.
-4. For plugin source/package inference, map schema fields as follows:
-   - plugin manifest/package identity -> `plugin_id` and dependency entry
-   - provider identity -> `provider_id` and `provider_name`
-   - tool YAML name -> `tool_name`
-   - tool labels/descriptions -> `tool_label` and `tool_description`
-   - tool parameters with `form: llm` -> `tool_parameters`
-   - tool parameters with `form: form` -> `tool_configurations`
-5. After generating the DSL, run `scripts/validate_dsl.py`. Then tell the user it
-   still needs an import/run test in Dify if the node was not copied from an export.
+1. 尽可能要求最小导出：创建空白 Dify 工作流，添加目标工具节点，配置授权和一个示例参数，导出 DSL。
+2. 从导出中提取以下字段：
+   `dependencies`、`provider_id`、`provider_name`、`provider_type`、`plugin_id`、
+   `plugin_unique_identifier`、`tool_name`、`tool_label`、`tool_description`、
+   `tool_node_version`、`paramSchemas`、`params`、`tool_configurations`、`tool_parameters`。
+3. 保持复制的身份字段不变。仅修改参数 `value` 字段、节点 ID、标题和图位置。
+4. 从插件源码/包推断时，按以下方式映射 schema 字段：
+   - 插件 manifest/package 身份 → `plugin_id` 和 dependency 条目
+   - provider 身份 → `provider_id` 和 `provider_name`
+   - tool YAML name → `tool_name`
+   - tool labels/descriptions → `tool_label` 和 `tool_description`
+   - `form: llm` 的工具参数 → `tool_parameters`
+   - `form: form` 的工具参数 → `tool_configurations`
+5. 生成 DSL 后，运行 `scripts/validate_dsl.py`。如果节点不是从导出复制的，告知用户仍需在 Dify 中做导入/运行测试。
 
-## Tool Node Identity Template
+## 工具节点身份模板
 
 ```yaml
-title: "Tool title"
+title: "工具标题"
 type: tool
 is_team_authorization: true
 provider_id: author/plugin/provider
@@ -67,8 +58,8 @@ provider_type: builtin
 plugin_id: author/plugin
 plugin_unique_identifier: author/plugin:0.0.1@sha256-or-marketplace-id
 tool_name: tool_name_from_plugin
-tool_label: "Human label"
-tool_description: "What this tool does."
+tool_label: "中文标签"
+tool_description: "工具功能描述"
 tool_node_version: "2"
 tool_configurations: {}
 tool_parameters:
@@ -78,48 +69,19 @@ tool_parameters:
 selected: false
 ```
 
-Do not invent `plugin_unique_identifier` for a production DSL. If it is unknown,
-either obtain an export/source or label the workflow as a best-effort draft.
+不要为生产 DSL 编造 `plugin_unique_identifier`。如果未知，要么获取导出/源码，要么将工作流标记为尽力草稿。
 
-Real exports may omit `plugin_id`, `plugin_unique_identifier`, and
-`tool_node_version` inside the node. They may still be valid if the top-level
-dependency or the target workspace/tool authorization supplies the missing
-identity. Preserve export shape instead of normalizing everything into one schema.
+真实导出可能省略节点内的 `plugin_id`、`plugin_unique_identifier` 和 `tool_node_version`。如果顶层 dependency 或目标工作区/工具授权提供了缺失的身份，它们仍然有效。保留导出形状，而不是将所有内容标准化为统一 schema。
 
-Dependency entries may be marketplace, package, or GitHub based:
+依赖条目格式（marketplace / package / github）见 `dsl-structure.md` 的 Dependencies 章节。
 
-```yaml
-- current_identifier: null
-  type: marketplace
-  value:
-    marketplace_plugin_unique_identifier: langgenius/openai:0.0.23@...
-    version: null
+官方 Dify 导出拒绝远程插件。如果目标工作流依赖远程插件，要求用户在期望可移植 DSL 导出/导入前替换为 marketplace、package 或 GitHub 安装方式。
 
-- current_identifier: null
-  type: package
-  value:
-    plugin_unique_identifier: author/private_plugin:0.0.1@...
-    version: null
+## `paramSchemas` 指引
 
-- current_identifier: null
-  type: github
-  value:
-    repo: author/plugin-repo
-    version: 0.0.1
-    package: plugin-package-name
-    github_plugin_unique_identifier: author/plugin:0.0.1@...
-```
+Dify 导出的许多工具节点带有详细的 `paramSchemas` 列表和 `params` 映射。这些字段保留了工具编辑器 UI 并使导入更忠实。
 
-Official Dify export refuses remote plugins. If the target workflow depends on a
-remote plugin, ask the user to replace it with marketplace, package, or GitHub
-installation before expecting portable DSL export/import.
-
-## `paramSchemas` Guidance
-
-Dify exports many tool nodes with a verbose `paramSchemas` list and a `params`
-mapping. These fields preserve the tool editor UI and make imports more faithful.
-
-If a copied export includes them, keep them. If hand-authoring from source:
+如果复制的导出包含它们，保留它们。如果从源码手写：
 
 ```yaml
 paramSchemas:
@@ -146,36 +108,30 @@ params:
   query: ""
 ```
 
-For many tools, Dify can still import without `paramSchemas`, but copying or
-reconstructing them reduces UI and compatibility surprises.
+许多工具没有 `paramSchemas` 也能被 Dify 导入，但复制或重建它们可以减少 UI 和兼容性问题。
 
-## Authorization And Secrets
+## 授权与密钥
 
-- Marketplace plugins often require user/team authorization. `is_team_authorization`
-  in DSL is not a credential.
-- `provider_type` can be `builtin`, `api`, `workflow`, or `mcp`; MCP and workflow
-  tools often do not map cleanly to marketplace dependencies.
-- Do not hardcode access tokens, app secrets, DB passwords, or private webhook
-  tokens in public DSL.
-- Prefer Dify plugin authorization, environment variables, or placeholder values.
-- If a tool can accept an override credential parameter such as `api_key` or
-  `db_uri`, set it from `{{#env.NAME#}}`.
+- Marketplace 插件通常需要用户/团队授权。DSL 中的 `is_team_authorization` 不是凭据。
+- `provider_type` 可以是 `builtin`、`api`、`workflow` 或 `mcp`；MCP 和 workflow 工具通常不能清晰映射到 marketplace dependency。
+- 不要在公共 DSL 中硬编码访问令牌、应用密钥、数据库密码或私有 webhook token。
+- 优先使用 Dify 插件授权、环境变量或占位符值。
+- 如果工具可以接受覆盖凭据参数（如 `api_key` 或 `db_uri`），通过 `{{#env.NAME#}}` 设置。
 
-## When To Refuse A Guarantee
+## 何时拒绝担保
 
-Say clearly that a tool node cannot be guaranteed import-ready when:
+当以下情况时，明确说明工具节点无法保证可导入：
 
-- The plugin/version is unknown.
-- The exact `provider_id` or `tool_name` is unknown.
-- Required parameter names or `form` types are unknown.
-- The plugin requires authorization not represented in DSL.
-- The marketplace page does not expose enough schema detail.
+- 插件/版本未知
+- 确切的 `provider_id` 或 `tool_name` 未知
+- 必需的参数名称或 `form` 类型未知
+- 插件需要 DSL 中未表示的授权
+- marketplace 页面未暴露足够的 schema 细节
 
-In those cases, provide a draft plus a short test plan:
+在这些情况下，提供草稿加简短测试计划：
 
-1. Import the DSL into a Dify test workspace.
-2. Re-select or authorize the plugin if Dify prompts.
-3. Open the tool node and confirm all required fields are mapped.
-4. Run a minimal test input and inspect the tool output fields.
-5. Update downstream selectors (`text`, `data`, `result`, `json`, `files`,
-   `output`) to match the actual output.
+1. 将 DSL 导入 Dify 测试工作区
+2. 如果 Dify 提示，重新选择或授权插件
+3. 打开工具节点，确认所有必填字段已映射
+4. 运行最小测试输入，检查工具输出字段
+5. 更新下游 selector（`text`、`data`、`result`、`json`、`files`、`output`）以匹配实际输出

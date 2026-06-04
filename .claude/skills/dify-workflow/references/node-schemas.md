@@ -398,6 +398,95 @@ selected: false
 Exported Dify graphs also include an `iteration-start` helper node with wrapper
 `type: custom-iteration-start` and internal child nodes marked `isInIteration`.
 
+### Iteration 完整内部结构示例
+
+以下是 iteration 节点包含一个 code 子节点的完整导出结构（节点 + 边）：
+
+```yaml
+# 1. iteration 容器节点
+- data:
+    title: "遍历文件列表"
+    type: iteration
+    iterator_selector: ["1770000000000", files]
+    output_selector: ["1770000000002", result]
+    output_type: array[string]
+    is_parallel: false
+    parallel_nums: 10
+    start_node_id: "1770000000003"
+    selected: false
+  id: "1770000000001"
+  position: { x: 400, y: 300 }
+  positionAbsolute: { x: 400, y: 300 }
+  selected: false
+  type: custom
+  width: 243
+  height: 89
+
+# 2. iteration-start 辅助节点（容器内必须有）
+- data:
+    title: ""
+    type: ""
+    selected: false
+  id: "1770000000003"
+  position: { x: 50, y: 50 }
+  positionAbsolute: { x: 450, y: 350 }
+  selected: false
+  type: custom-iteration-start
+  width: 44
+  height: 44
+
+# 3. 容器内的子节点（标记 isInIteration: true）
+- data:
+    title: "处理单个文件"
+    type: code
+    code_language: python3
+    code: |
+      def main(file: dict) -> dict:
+          return {"result": file.get("name", "")}
+    variables:
+      - value_selector: ["1770000000001", item]
+        variable: file
+    outputs:
+      result:
+        type: string
+    isInIteration: true
+    iteration_id: "1770000000001"
+    selected: false
+  id: "1770000000002"
+  position: { x: 200, y: 50 }
+  positionAbsolute: { x: 600, y: 350 }
+  selected: false
+  type: custom
+  width: 243
+  height: 89
+```
+
+容器内边的结构：
+
+```yaml
+# iteration-start → 子节点（sourceType 为 iteration-start，不是 start）
+- data:
+    isInLoop: false
+    isInIteration: true
+    iteration_id: "1770000000001"
+    sourceType: iteration-start
+    targetType: code
+  id: 1770000000003-source-1770000000002-target
+  selected: false
+  source: "1770000000003"
+  sourceHandle: source
+  target: "1770000000002"
+  targetHandle: target
+  type: custom
+  zIndex: 0
+```
+
+关键要点：
+- 容器外的边 `isInIteration: false`，容器内的边 `isInIteration: true` 且带 `iteration_id`
+- `iteration-start` 的 wrapper type 是 `custom-iteration-start`，边的 `sourceType` 为 `iteration-start`
+- 子节点通过 `data` 中的 `isInIteration` 和 `iteration_id` 归属容器
+- 子节点引用迭代项用 `["iteration_node_id", "item"]`
+
 ## loop
 
 ```yaml
@@ -417,6 +506,130 @@ selected: false
 Exported loop internals use `loop-start` and mark child edges/nodes with
 `isInLoop`. Dify's current node enum also includes `loop-end`; copy loop internals
 from an export when the loop contains nested branches or multiple exits.
+
+### Loop 完整内部结构示例
+
+以下是 loop 节点包含一个 code 子节点的完整导出结构（节点 + 边）：
+
+```yaml
+# 1. loop 容器节点
+- data:
+    title: "重试循环"
+    type: loop
+    loop_count: 5
+    break_conditions:
+      - id: 6db087e6-0000-4000-9000-000000000001
+        variable_selector: ["1770000000002", done]
+        comparison_operator: is
+        value: "true"
+        varType: boolean
+    start_node_id: "1770000000003"
+    selected: false
+  id: "1770000000001"
+  position: { x: 400, y: 300 }
+  positionAbsolute: { x: 400, y: 300 }
+  selected: false
+  type: custom
+  width: 243
+  height: 89
+
+# 2. loop-start 辅助节点
+- data:
+    title: ""
+    type: ""
+    selected: false
+  id: "1770000000003"
+  position: { x: 50, y: 50 }
+  positionAbsolute: { x: 450, y: 350 }
+  selected: false
+  type: custom-loop-start
+  width: 44
+  height: 44
+
+# 3. loop-end 辅助节点
+- data:
+    title: ""
+    type: ""
+    selected: false
+  id: "1770000000004"
+  position: { x: 400, y: 50 }
+  positionAbsolute: { x: 650, y: 350 }
+  selected: false
+  type: custom-loop-end
+  width: 44
+  height: 44
+
+# 4. 容器内的子节点（标记 isInLoop: true）
+- data:
+    title: "检查状态"
+    type: code
+    code_language: python3
+    code: |
+      def main(prev_result: str) -> dict:
+          done = prev_result == "success"
+          return {"done": done, "output": prev_result}
+    variables:
+      - value_selector: ["1770000000001", item]
+        variable: prev_result
+    outputs:
+      done:
+        type: boolean
+      output:
+        type: string
+    isInLoop: true
+    loop_id: "1770000000001"
+    selected: false
+  id: "1770000000002"
+  position: { x: 200, y: 50 }
+  positionAbsolute: { x: 600, y: 350 }
+  selected: false
+  type: custom
+  width: 243
+  height: 89
+```
+
+容器内边的结构：
+
+```yaml
+# loop-start → 子节点（sourceType 为 loop-start）
+- data:
+    isInLoop: true
+    isInIteration: false
+    loop_id: "1770000000001"
+    sourceType: loop-start
+    targetType: code
+  id: 1770000000003-source-1770000000002-target
+  selected: false
+  source: "1770000000003"
+  sourceHandle: source
+  target: "1770000000002"
+  targetHandle: target
+  type: custom
+  zIndex: 0
+
+# 子节点 → loop-end（sourceType 为 code，targetType 为 loop-end）
+- data:
+    isInLoop: true
+    isInIteration: false
+    loop_id: "1770000000001"
+    sourceType: code
+    targetType: loop-end
+  id: 1770000000002-source-1770000000004-target
+  selected: false
+  source: "1770000000002"
+  sourceHandle: source
+  target: "1770000000004"
+  targetHandle: target
+  type: custom
+  zIndex: 0
+```
+
+关键要点：
+- loop 与 iteration 类似，但额外支持 `break_conditions` 和 `loop-end` 辅助节点
+- `loop-start` wrapper type 是 `custom-loop-start`，边的 `sourceType` 为 `loop-start`
+- `loop-end` wrapper type 是 `custom-loop-end`，边的 `targetType` 为 `loop-end`
+- 子节点和边通过 `isInLoop` + `loop_id` 归属容器
+- `break_conditions` 中的 `variable_selector` 引用子节点输出（如 `["1770000000002", done]`），节点 ID 必须是容器内的实际子节点
 
 ## datasource
 
