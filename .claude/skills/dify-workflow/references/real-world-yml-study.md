@@ -203,6 +203,48 @@
 - Iteration 导出包含 `iteration` 加 `iteration-start`（wrapper `custom-iteration-start`）
 - 部分旧 iteration 子边缺少所有较新的 loop/iteration 标记；从真实导出复制比手写嵌套图元数据更安全
 
+### Iteration 节点完整结构（基于真实导出）
+
+迭代节点是 Dify DSL 中最复杂的结构之一。以下是基于真实导出（搜索大师3.yml、json_translate.yml）的完整字段清单：
+
+**迭代容器节点**：
+- `data.type: iteration` — 必须
+- `data.iterator_selector: ["源节点ID", "变量名"]` — 必须
+- `data.output_selector: ["输出节点ID", "输出字段"]` — 必须
+- `data.output_type: array[string]` — 必须
+- `data.start_node_id: "iteration-start节点ID"` — 必须
+- `data.startNodeType: agent/tool/code/llm` — 必须，指定迭代内起始节点类型
+- `data.error_handle_mode: terminated | remove-abnormally` — 必须
+- `data.width: 数字` — 必须，需要足够大以容纳内部子节点（建议 >= 500）
+
+**iteration-start 辅助节点**：
+- `data.type: iteration-start` — 注意：不是 `start`
+- `data.isInIteration: true` — 必须
+- `draggable: false` — 必须
+- `selectable: false` — 必须
+- `parentId: "迭代容器ID"` — 必须
+- `position: { x: 24, y: 68 }` — 相对坐标（相对于容器左上角）
+
+**迭代内子节点**：
+- `data.isInIteration: true` — 必须
+- `data.iteration_id: "迭代容器ID"` — 必须
+- `data.isIterationStart: true` — 第一个节点必须有
+- `parentId: "迭代容器ID"` — 必须
+- `extent: parent` — 必须，坐标相对于父节点
+- `position: { x: 数字, y: 数字 }` — 相对坐标
+- `zIndex: 1001` — 第一个节点
+
+**迭代内边**：
+- `data.isInIteration: true` — 必须
+- `data.iteration_id: "迭代容器ID"` — 必须
+- `data.sourceType: iteration-start` — 从 iteration-start 出发的边
+- `zIndex: 1002` — 迭代内边的 zIndex
+
+**重要说明**：
+1. **迭代内不需要显式的 iteration-end 节点**：迭代内的最后一个节点就是终点
+2. **迭代项引用方式**：用 `["迭代容器ID", "item"]`，例如 `{{#iteration_1.item#}}`
+3. **不要使用 `{{#sys.current_item#}}`**：这是错误的引用方式
+
 ## 本技能的规则修正
 
 - 不要求每个工具节点都有 `plugin_id` 或 `tool_node_version`
@@ -214,4 +256,4 @@
 - 生成的应用默认 `workflow`；需要 Chatflow、memory、`sys.query`、`sys.files` 和 `answer` 节点时切换为 `advanced-chat`
 - 将触发器驱动的 Slack/飞书/webhook/定时自动化视为 `workflow`
 - 新工作优先生成 `workflow` 或 `advanced-chat`，但理解遗留/公共 DSL 用于审查或适配
-- 新生成 DSL 使用官方 `version: "0.6.0"`，仅从这些旧公共样本借鉴图模式
+- 新生成 DSL 使用官方 `version: 0.6.0`（不带引号），仅从这些旧公共样本借鉴图模式

@@ -19,8 +19,9 @@
 
 - Dify 源码声明 `CURRENT_APP_DSL_VERSION = "0.6.0"`。
 - 导入时期望 `version` 为字符串类型。
-- 新生成的 DSL 应以 `version: "0.6.0"` 为目标，除非用户明确要求兼容旧版 Dify 工作区。
+- 新生成的 DSL 应以 `version: 0.6.0` 为目标（**不带引号**），除非用户明确要求兼容旧版 Dify 工作区。
 - Dify 可在 `dependencies` 缺失时为非常旧的导入版本（`<=0.1.5`）回填最新依赖。对于新 DSL，显式声明依赖对跨工作区导入更安全。
+- **dependencies 可以为空数组** `[]`，不需要声明每个插件依赖。
 - 导出的工作流图镜像 ReactFlow 结构：每个节点有一个外部包装器和一个 `data` 对象；边通过 `source`/`target` 节点 ID 和 handle 进行连接。
 
 本 Skill 使用的主要资料来源：
@@ -52,23 +53,38 @@ app:
   mode: advanced-chat       # workflow | advanced-chat | chat | completion | agent-chat
   use_icon_as_answer_icon: false
 kind: app
-version: "0.6.0"
+version: 0.6.0
 dependencies: []
 workflow:
   conversation_variables: []
   environment_variables: []
   features:
     file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
       enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
       image:
         enabled: false
         number_limits: 3
-        transfer_methods: [local_file, remote_url]
-      allowed_file_extensions: []
-      allowed_file_types: []
-      allowed_file_upload_methods: [local_file, remote_url]
+        transfer_methods:
+        - local_file
+        - remote_url
       number_limits: 3
-    opening_statement: ""
+    opening_statement: ''
     retriever_resource:
       enabled: true
     sensitive_word_avoidance:
@@ -80,8 +96,8 @@ workflow:
       enabled: false
     text_to_speech:
       enabled: false
-      language: ""
-      voice: ""
+      language: ''
+      voice: ''
   graph:
     nodes: []
     edges: []

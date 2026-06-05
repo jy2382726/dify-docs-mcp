@@ -528,73 +528,92 @@ output_selector: ["1770000000003", output]
 output_type: array[string]
 is_parallel: false
 parallel_nums: 10
-start_node_id: "1770000000002"
+start_node_id: "1770000000003"
+startNodeType: code          # 必须：指定迭代内起始节点类型（code/agent/tool/http-request 等）
+error_handle_mode: terminated  # terminated | remove-abnormally
+width: 500                    # 需要足够大以容纳内部子节点
 selected: false
 ```
 
 导出的 Dify 图结构中还包含一个 `iteration-start` 辅助节点（wrapper `type: custom-iteration-start`），以及标记了 `isInIteration` 的内部子节点。
 
+### 重要说明
+
+1. **迭代内不需要显式 iteration-end 节点**：迭代内的最后一个节点就是终点，`output_selector` 直接指向最后一个节点的输出。
+2. **迭代项引用方式**：用 `["迭代容器ID", "item"]`，例如 `{{#iteration_1.item#}}`。**不要**使用 `{{#sys.current_item#}}`。
+3. **迭代内子节点坐标**：使用相对坐标（相对于迭代容器左上角的偏移），而非绝对坐标。
+4. **迭代容器尺寸**：`width` 和 `height` 需要足够大以容纳内部子节点，建议 width >= 500，height >= 270。
+
 ### Iteration 完整内部结构示例
 
-以下是 iteration 节点包含一个 code 子节点的完整导出结构（节点 + 边）：
+以下是 iteration 节点包含一个 agent 子节点的完整导出结构（基于真实导出）：
 
 ```yaml
-# 1. iteration 容器节点
+# 1. iteration 容器节点（完整字段）
 - data:
-    title: "遍历文件列表"
+    title: "遍历子任务"
     type: iteration
-    iterator_selector: ["1770000000000", files]
-    output_selector: ["1770000000002", result]
+    iterator_selector: ["code_parser", tasks]
+    output_selector: ["iter_llm_1", text]
     output_type: array[string]
     is_parallel: false
-    parallel_nums: 10
-    start_node_id: "1770000000003"
+    parallel_nums: 3
+    start_node_id: "iteration_start_1"
+    startNodeType: agent          # 必须字段
+    error_handle_mode: remove-abnormally
+    desc: ""
     selected: false
-  id: "1770000000001"
-  position: { x: 400, y: 300 }
-  positionAbsolute: { x: 400, y: 300 }
-  selected: false
+    width: 500                    # 需要足够大
+  id: "iteration_1"
+  position: { x: 942, y: 300 }
+  positionAbsolute: { x: 942, y: 300 }
+  sourcePosition: right
+  targetPosition: left
   type: custom
-  width: 243
-  height: 89
+  width: 500
+  height: 292
 
 # 2. iteration-start 辅助节点（容器内必须有）
 - data:
-    title: ""
-    type: ""
+    desc: ""
+    isInIteration: true
     selected: false
-  id: "1770000000003"
-  position: { x: 50, y: 50 }
-  positionAbsolute: { x: 450, y: 350 }
-  selected: false
+    title: ""
+    type: iteration-start         # 注意：data.type 是 iteration-start，不是 start
+  draggable: false                 # 必须字段
+  height: 48
+  id: "iteration_start_1"
+  parentId: "iteration_1"         # 必须字段：指向迭代容器 ID
+  position: { x: 24, y: 68 }      # 相对坐标（相对于容器左上角）
+  positionAbsolute: { x: 966, y: 368 }
+  selectable: false                # 必须字段
+  sourcePosition: right
+  targetPosition: left
   type: custom-iteration-start
   width: 44
-  height: 44
+  zIndex: 1002
 
-# 3. 容器内的子节点（标记 isInIteration: true）
+# 3. 容器内的子节点（第一个节点需要 isIterationStart: true）
 - data:
-    title: "处理单个文件"
-    type: code
-    code_language: python3
-    code: |
-      def main(file: dict) -> dict:
-          return {"result": file.get("name", "")}
-    variables:
-      - value_selector: ["1770000000001", item]
-        variable: file
-    outputs:
-      result:
-        type: string
-    isInIteration: true
-    iteration_id: "1770000000001"
-    selected: false
-  id: "1770000000002"
-  position: { x: 200, y: 50 }
-  positionAbsolute: { x: 600, y: 350 }
-  selected: false
+    title: "深度研究"
+    type: agent
+    # ... agent 配置 ...
+    isInIteration: true            # 必须字段
+    isIterationStart: true         # 第一个节点必须有
+    iteration_id: "iteration_1"    # 必须字段：指向迭代容器 ID
+    selected: true
+  extent: parent                   # 必须字段：坐标相对于父节点
+  height: 187
+  id: "iter_llm_1"
+  parentId: "iteration_1"          # 必须字段：指向迭代容器 ID
+  position: { x: 117, y: 85 }     # 相对坐标（相对于容器左上角）
+  positionAbsolute: { x: 1059, y: 385 }
+  selected: true
+  sourcePosition: right
+  targetPosition: left
   type: custom
-  width: 243
-  height: 89
+  width: 242
+  zIndex: 1001
 ```
 
 容器内边的结构：
@@ -602,26 +621,28 @@ selected: false
 ```yaml
 # iteration-start → 子节点（sourceType 为 iteration-start，不是 start）
 - data:
+    isInIteration: true            # 必须字段
     isInLoop: false
-    isInIteration: true
-    iteration_id: "1770000000001"
+    iteration_id: "iteration_1"    # 必须字段：指向迭代容器 ID
     sourceType: iteration-start
-    targetType: code
-  id: 1770000000003-source-1770000000002-target
-  selected: false
-  source: "1770000000003"
+    targetType: agent
+  id: "iteration_start_1-source-iter_llm_1-target"
+  source: "iteration_start_1"
   sourceHandle: source
-  target: "1770000000002"
+  target: "iter_llm_1"
   targetHandle: target
   type: custom
-  zIndex: 0
+  zIndex: 1002                     # 迭代内边的 zIndex 为 1002
 ```
 
 关键要点：
 - 容器外的边 `isInIteration: false`，容器内的边 `isInIteration: true` 且带 `iteration_id`
 - `iteration-start` 的 wrapper type 是 `custom-iteration-start`，边的 `sourceType` 为 `iteration-start`
-- 子节点通过 `data` 中的 `isInIteration` 和 `iteration_id` 归属容器
-- 子节点引用迭代项用 `["iteration_node_id", "item"]`
+- 子节点通过 `data` 中的 `isInIteration`、`iteration_id` 和 `parentId` 归属容器
+- 子节点需要 `extent: parent` 字段，坐标为相对坐标
+- 第一个子节点需要 `isIterationStart: true` 字段
+- **迭代内不需要 iteration-end 节点**，最后一个节点就是终点
+- 迭代项引用用 `["迭代容器ID", "item"]`，例如 `{{#iteration_1.item#}}`
 
 ## loop
 
