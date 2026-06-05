@@ -32,5 +32,10 @@ Thumbs.db
 specs/
 docs/superpowers/
 
+# Other skills (only dify-workflow is published)
+.claude/skills/adversarial-architecture-selection/
+.claude/skills/prd-writer/
+.claude/skills/product-research-kickoff/
+
 # Examples
 examples/
