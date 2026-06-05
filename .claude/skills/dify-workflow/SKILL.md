@@ -19,7 +19,7 @@ ReactFlow 的节点和边图。
    或 `answer` 节点时，使用 `advanced-chat`。详见 `references/usecase-node-selection.md`。
 2. **收集需求**：确认 app mode、inputs、model/provider、插件、知识库、密钥、
    触发源、期望输出。
-3. **选择版本**：新 DSL 使用 `version: "0.6.0"`（YAML 字符串格式）。
+3. **选择版本**：按下方「版本处理」章节确定 DSL 版本。
 4. **绘制草图**：先画节点连接图，再写 YAML。
 5. **连接边**：每条边必须有 `sourceType`、`targetType`、`sourceHandle`、`targetHandle`。
 6. **添加依赖**：每个插件节点都需要 dependencies 条目。
@@ -47,6 +47,31 @@ ReactFlow 的节点和边图。
 - **插件工具**：不承诺未知工具的可靠性，要求导出 DSL 或源码
 
 详细决策矩阵：`references/usecase-node-selection.md`、`references/plugin-marketplace-tools.md`
+
+## 版本处理
+
+### DSL 版本策略
+
+- 新建工作流时，使用当前最新的 DSL 版本（当前为 `0.6.0`）
+- Dify 平台版本（如 1.14.2）与 DSL 版本（如 0.6.0）是独立的，平台版本不决定 DSL 版本
+- DSL 版本变更时，需更新 `references/official-0.6-target.md`（重命名文件并更新内容）
+
+### 版本检测
+
+1. 用户提供了导出 YAML → 读取顶层 `version` 字段，确认与目标版本一致
+2. 用户未提供文件 → 按最新版本生成，提示「如版本不匹配请提供导出文件」
+
+### 版本敏感节点
+
+以下节点的 Schema 随 Dify 版本变化较大，必须从目标工作区的导出文件中复制：
+
+- human-input / human-feedback
+- trigger-schedule / trigger-webhook / trigger-plugin
+- tool（plugin_id 等字段因版本而异）
+- knowledge-index
+- datasource
+
+其他节点（start、end、llm、code、if-else 等）在 0.6.0 中已稳定，可直接按 Schema 生成。
 
 ## Authoring Rules
 
