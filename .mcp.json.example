@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dify-docs": {
+      "type": "streamable-http",
+      "url": "https://<your-mintlify-id>.main-kill-isr.mintlify.me/mcp"
+    }
+  }
+}

@@ -25,5 +25,12 @@ Thumbs.db
 .env
 .env.local
 
+# MCP config (contains API keys)
+.mcp.json
+
+# Internal docs
+specs/
+docs/superpowers/
+
 # Examples
 examples/
