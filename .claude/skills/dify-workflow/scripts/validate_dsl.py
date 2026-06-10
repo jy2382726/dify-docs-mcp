@@ -147,8 +147,12 @@ def validate_file(path: Path) -> Report:
         node_edge_type_by_id[node_id] = WRAPPER_TO_EDGE_TYPE.get(wrapper_type, node_type)
         if wrapper_type not in {None, "custom", "custom-iteration-start", "custom-iteration-end", "custom-loop-start", "custom-loop-end", "custom-note"}:
             report.warn(f"Node {node_id} wrapper type is unusual: {wrapper_type!r}.")
+        if wrapper_type == "custom-loop-end":
+            report.warn(f"Node {node_id} uses custom-loop-end. Current Dify exports usually end loop internals at the last child node.")
 
         validate_node(report, node_id, data)
+
+    validate_loop_graph(report, node_by_id, node_type_by_id)
 
     terminal = TERMINAL_BY_MODE.get(mode)
     if terminal and terminal not in node_type_by_id.values():
@@ -305,6 +309,58 @@ def validate_node(report: Report, node_id: str, data: dict[str, Any]) -> None:
     elif node_type == "parameter-extractor":
         if not isinstance(data.get("parameters"), list):
             report.error(f"Parameter extractor node {node_id} ({title}) missing parameters list.")
+
+    elif node_type == "loop":
+        loop_variables = data.get("loop_variables")
+        if not isinstance(loop_variables, list) or not loop_variables:
+            report.error(f"Loop node {node_id} ({title}) missing loop_variables list.")
+        else:
+            for index, variable in enumerate(loop_variables):
+                if not isinstance(variable, dict):
+                    report.error(f"Loop node {node_id} ({title}) loop_variables[{index}] is not a mapping.")
+                    continue
+                for key in ("id", "label", "value_type", "var_type"):
+                    if not variable.get(key):
+                        report.error(f"Loop node {node_id} ({title}) loop_variables[{index}] missing {key}.")
+
+        for index, condition in enumerate(as_list(data.get("break_conditions"))):
+            if not isinstance(condition, dict):
+                continue
+            variable_selector = condition.get("variable_selector")
+            if not isinstance(variable_selector, list) or len(variable_selector) < 2:
+                report.error(f"Loop node {node_id} ({title}) break_conditions[{index}] missing variable_selector.")
+                continue
+            if variable_selector[0] != node_id:
+                report.error(
+                    f"Loop node {node_id} ({title}) break_conditions[{index}] must reference "
+                    f"loop_variables via [{node_id!r}, variable], not {variable_selector!r}."
+                )
+
+        if not data.get("start_node_id"):
+            report.error(f"Loop node {node_id} ({title}) missing start_node_id.")
+
+
+def validate_loop_graph(
+    report: Report,
+    node_by_id: dict[str, dict[str, Any]],
+    node_type_by_id: dict[str, str],
+) -> None:
+    for loop_id, node in node_by_id.items():
+        if node_type_by_id.get(loop_id) != "loop":
+            continue
+        loop_data = as_dict(node.get("data"))
+        loop_title = loop_data.get("title", loop_id)
+        children = [
+            child
+            for child in node_by_id.values()
+            if isinstance(child, dict) and child.get("parentId") == loop_id
+        ]
+        has_assigner = any(as_dict(child.get("data")).get("type") == "assigner" for child in children)
+        if not has_assigner:
+            report.warn(
+                f"Loop node {loop_id} ({loop_title}) has no assigner child. "
+                "Loop state changes must be written back to loop_variables with an assigner node."
+            )
 
 
 def validate_variables(report: Report, workflow: dict[str, Any]) -> None:

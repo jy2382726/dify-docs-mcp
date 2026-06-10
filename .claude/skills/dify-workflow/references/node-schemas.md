@@ -649,142 +649,241 @@ selected: false
 ```yaml
 title: "循环"
 type: loop
-loop_count: 5
+loop_count: 10
+start_node_id: "loop_1_start"
+loop_variables:
+  - id: 75b80ccd-0000-4000-9000-000000000001
+    label: cur
+    value: "0"
+    value_type: constant
+    var_type: number
+  - id: bc6b2015-0000-4000-9000-000000000002
+    label: poem
+    value: ["start_1", poem]
+    value_type: variable
+    var_type: string
 break_conditions:
-  - id: 6db087e6-0000-4000-9000-000000000001
-    variable_selector: ["1770000000003", done]
-    comparison_operator: is
-    value: "true"
-    varType: boolean
-start_node_id: "1770000000002"
+  - id: 27945f3a-0000-4000-9000-000000000001
+    variable_selector: ["1770000000001", cur]
+    comparison_operator: '='
+    numberVarType: variable
+    value: "{{#start_1.num#}}"
+    varType: number
+logical_operator: and
+error_handle_mode: terminated
 selected: false
 ```
 
-导出的 loop 内部结构使用 `loop-start`，子节点和边标记 `isInLoop`。Dify 当前的节点枚举还包含 `loop-end`；当 loop 包含嵌套分支或多个退出路径时，请从导出文件中复制完整的 loop 内部结构。
+**Loop 节点的核心机制：状态通过 loop_variables 跨轮次传递**
+
+Loop 与 Iteration 的关键差异：
+
+- Iteration 遍历数组，每轮通过 `["iter_id", "item"]` 取当前元素，子节点是无状态的
+- Loop 没有 `item` 概念。状态保存在容器自身的 `loop_variables` 里，子节点读取后必须通过 `assigner` 节点把更新值写回 loop_variables，下一轮才能读到
+
+任何引用循环变量的地方（子节点 variables、break_conditions、End 节点）一律用 `["loop_容器_id", "loop_variable_label"]`，**不要写 `["loop_id", "item"]`**。
+
+**loop_variables 字段说明：**
+
+| 字段 | 说明 |
+|------|------|
+| `id` | UUID，唯一标识 |
+| `label` | 变量名，子节点和 break_conditions 用这个名称引用 |
+| `value` | 初始值。`value_type: constant` 时为字面量，`variable` 时为 `[node_id, field]` selector |
+| `value_type` | `constant` 或 `variable` |
+| `var_type` | `number` / `string` / `boolean` / `object` / `array[xxx]` |
+
+**break_conditions 字段说明：**
+
+- `variable_selector`: 必须指向 loop_variable，即 `["loop_容器_id", "loop_variable_label"]`
+- `value`: 可以是常量字符串（`"5"`），或变量引用（`"{{#start_1.num#}}"`）
+- `numberVarType: variable`: 当 value 是变量引用时必填；常量时可省略
+- `varType`: 与被比较变量类型一致（`number` / `string` / `boolean`）
 
 ### Loop 完整内部结构示例
 
-以下是 loop 节点包含一个 code 子节点的完整导出结构（节点 + 边）：
+下面是一个 Loop 容器，内部为「代码节点 → 变量赋值节点（assigner）」的链式结构。这是最小可运行的状态循环模式。
 
 ```yaml
 # 1. loop 容器节点
 - data:
-    title: "重试循环"
+    title: "状态循环"
     type: loop
-    loop_count: 5
+    loop_count: 10
+    start_node_id: "loop_1_start"
+    loop_variables:
+      - id: 75b80ccd-0000-4000-9000-000000000001
+        label: cur
+        value: "0"
+        value_type: constant
+        var_type: number
+      - id: bc6b2015-0000-4000-9000-000000000002
+        label: poem
+        value: ["start_1", poem]
+        value_type: variable
+        var_type: string
     break_conditions:
-      - id: 6db087e6-0000-4000-9000-000000000001
-        variable_selector: ["1770000000002", done]
-        comparison_operator: is
-        value: "true"
-        varType: boolean
-    start_node_id: "1770000000003"
+      - id: 27945f3a-0000-4000-9000-000000000001
+        variable_selector: ["loop_1", cur]
+        comparison_operator: '='
+        numberVarType: variable
+        value: "{{#start_1.num#}}"
+        varType: number
+    logical_operator: and
+    error_handle_mode: terminated
     selected: false
-  id: "1770000000001"
+  id: "loop_1"
   position: { x: 400, y: 300 }
   positionAbsolute: { x: 400, y: 300 }
   selected: false
   type: custom
-  width: 243
-  height: 89
+  width: 688
+  height: 198
 
-# 2. loop-start 辅助节点
+# 2. loop-start 辅助节点（容器内必须有，不可拖动）
 - data:
-    title: ""
-    type: ""
+    desc: ""
+    isInLoop: true
     selected: false
-  id: "1770000000003"
-  position: { x: 50, y: 50 }
-  positionAbsolute: { x: 450, y: 350 }
-  selected: false
+    title: ""
+    type: loop-start
+  draggable: false
+  height: 48
+  id: "loop_1_start"
+  parentId: "loop_1"
+  position: { x: 24, y: 68 }
+  positionAbsolute: { x: 424, y: 368 }
+  selectable: false
+  sourcePosition: right
+  targetPosition: left
   type: custom-loop-start
   width: 44
-  height: 44
+  zIndex: 1002
 
-# 3. loop-end 辅助节点
+# 3. 容器内的代码节点：读取 loop_variables，计算新值
 - data:
-    title: ""
-    type: ""
-    selected: false
-  id: "1770000000004"
-  position: { x: 400, y: 50 }
-  positionAbsolute: { x: 650, y: 350 }
-  selected: false
-  type: custom-loop-end
-  width: 44
-  height: 44
-
-# 4. 容器内的子节点（标记 isInLoop: true）
-- data:
-    title: "检查状态"
+    title: "递增"
     type: code
     code_language: python3
     code: |
-      def main(prev_result: str) -> dict:
-          done = prev_result == "success"
-          return {"done": done, "output": prev_result}
+      def main(cur: float, poem: str) -> dict:
+          cur = cur + 1
+          poem = poem + "追加" + str(cur) + "次"
+          return {"cur": cur, "poem": poem}
     variables:
-      - value_selector: ["1770000000001", item]
-        variable: prev_result
+      # 从 loop_variables 读取（注意：node_id 是 loop 容器自身的 id）
+      - value_selector: ["loop_1", cur]
+        value_type: number
+        variable: cur
+      - value_selector: ["loop_1", poem]
+        value_type: string
+        variable: poem
     outputs:
-      done:
-        type: boolean
-      output:
+      cur:
+        children: null
+        type: number
+      poem:
+        children: null
         type: string
     isInLoop: true
-    loop_id: "1770000000001"
+    loop_id: "loop_1"
     selected: false
-  id: "1770000000002"
-  position: { x: 200, y: 50 }
-  positionAbsolute: { x: 600, y: 350 }
-  selected: false
+  extent: parent
+  height: 52
+  id: "step_1"
+  parentId: "loop_1"
+  position: { x: 128, y: 68 }
+  positionAbsolute: { x: 528, y: 368 }
+  sourcePosition: right
+  targetPosition: left
   type: custom
-  width: 243
-  height: 89
+  width: 242
+  zIndex: 1002
+
+# 4. 变量赋值节点（assigner）：把代码节点输出写回 loop_variables
+- data:
+    title: "变量赋值"
+    type: assigner
+    version: "2"
+    isInLoop: true
+    isInIteration: false
+    loop_id: "loop_1"
+    items:
+      - input_type: variable
+        operation: over-write
+        value: ["step_1", cur]            # 来源：代码节点输出
+        variable_selector: ["loop_1", cur] # 目标：loop_variable
+      - input_type: variable
+        operation: over-write
+        value: ["step_1", poem]
+        variable_selector: ["loop_1", poem]
+    selected: false
+  height: 110
+  id: "assign_1"
+  parentId: "loop_1"
+  position: { x: 430, y: 68 }
+  positionAbsolute: { x: 830, y: 368 }
+  sourcePosition: right
+  targetPosition: left
+  type: custom
+  width: 242
+  zIndex: 1002
 ```
 
-容器内边的结构：
+容器内边的结构（链式：loop-start → code → assigner）：
 
 ```yaml
-# loop-start → 子节点（sourceType 为 loop-start）
+# loop-start → code（sourceType 为 loop-start）
 - data:
-    isInLoop: true
     isInIteration: false
-    loop_id: "1770000000001"
+    isInLoop: true
+    loop_id: "loop_1"
     sourceType: loop-start
     targetType: code
-  id: 1770000000003-source-1770000000002-target
-  selected: false
-  source: "1770000000003"
+  id: loop_1_start-source-step_1-target
+  source: "loop_1_start"
   sourceHandle: source
-  target: "1770000000002"
+  target: "step_1"
   targetHandle: target
   type: custom
-  zIndex: 0
+  zIndex: 1002
 
-# 子节点 → loop-end（sourceType 为 code，targetType 为 loop-end）
+# code → assigner（写回 loop_variables）
 - data:
-    isInLoop: true
     isInIteration: false
-    loop_id: "1770000000001"
+    isInLoop: true
+    loop_id: "loop_1"
     sourceType: code
-    targetType: loop-end
-  id: 1770000000002-source-1770000000004-target
-  selected: false
-  source: "1770000000002"
+    targetType: assigner
+  id: step_1-source-assign_1-target
+  source: "step_1"
   sourceHandle: source
-  target: "1770000000004"
+  target: "assign_1"
   targetHandle: target
   type: custom
-  zIndex: 0
+  zIndex: 1002
+```
+
+End 节点引用循环最终结果时，也用 `["loop_容器_id", "loop_variable_label"]`：
+
+```yaml
+- data:
+    title: "结束"
+    type: end
+    outputs:
+      - variable: poem
+        value_selector: ["loop_1", poem]
 ```
 
 关键要点：
-- loop 与 iteration 类似，但额外支持 `break_conditions` 和 `loop-end` 辅助节点
-- `loop-start` wrapper type 是 `custom-loop-start`，边的 `sourceType` 为 `loop-start`
-- `loop-end` wrapper type 是 `custom-loop-end`，边的 `targetType` 为 `loop-end`
-- 子节点和边通过 `isInLoop` + `loop_id` 归属容器
-- `break_conditions` 中的 `variable_selector` 引用子节点输出（如 `["1770000000002", done]`），节点 ID 必须是容器内的实际子节点
+
+- **状态机制**：Loop 通过 `loop_variables` 在容器自身上维护持久状态。子节点读 → 计算 → assigner 写回，下一轮才能读到更新值
+- **变量引用统一规则**：所有循环内变量都通过 `["loop_容器_id", "loop_variable_label"]` 引用——子节点 variables、break_conditions、End 节点输出都一样
+- **不要写 `["loop_id", "item"]`**：那是 Iteration 的专有语法，Loop 没有 item 概念
+- **assigner 节点不可省略**：仅靠代码节点 return 不会更新 loop_variables；必须用 assigner 显式写回
+- **break_conditions**：`variable_selector` 指向 loop_variable；当 `value` 是变量引用时需加 `numberVarType: variable`
+- **辅助节点**：`loop-start` wrapper type 是 `custom-loop-start`，`sourceType: loop-start`。**实际 Dify 导出不使用 loop-end 辅助节点**，链路在最后一个子节点（如 assigner）结束即可
+- **归属**：子节点和容器内边通过 `isInLoop: true` + `loop_id` + `parentId` 归属容器；子节点需 `extent: parent`，坐标为相对父容器
 
 ## datasource
 
