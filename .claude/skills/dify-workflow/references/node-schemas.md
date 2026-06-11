@@ -282,6 +282,35 @@ selected: false
 
 输出字段为 `output`。
 
+### Jinja2 沙箱限制
+
+Dify 的 template-transform 运行在 Jinja2 沙箱中，以下操作受限：
+
+**禁止操作**（运行时报 TypeError）：
+- dict 内建方法调用：`.items()`、`.keys()`、`.values()`
+- 其他 Python 方法调用
+
+**安全操作**：
+- 变量插值：`{{ title }}`、`{{ data.total }}`
+- 属性访问：`{{ item.name }}`
+- for 循环：`{% for item in list %}`
+- 条件判断：`{% if %} / {% elif %} / {% else %} / {% endif %}`
+- loop 变量：`loop.index`、`loop.index0`、`loop.first`、`loop.last`、`loop.length`
+- 过滤器：`{{ name | upper }}`、`{{ text | truncate(50) }}`
+
+**绕行策略**：当需要遍历 dict 的动态 key→value 时，应在 code 节点中将 dict 转为固定字段结构，再传入 template-transform。例如：
+
+```yaml
+# Code 节点输出固定字段
+{"items": [{"index": 1, "detail": "- 姓名: 张三\n- 部门: 工程"}], "total": 1}
+
+# Template 只做属性访问
+{% for item in items %}
+第 {{ item.index }} 条
+{{ item.detail }}
+{% endfor %}
+```
+
 ## variable-aggregator
 
 ```yaml

@@ -39,6 +39,7 @@ SQL_DANGEROUS_RE = re.compile(r"\b(drop|truncate|alter)\b", re.IGNORECASE)
 SQL_MUTATING_RE = re.compile(r"\b(delete|update)\b", re.IGNORECASE)
 SQL_TRAILING_COMMA_RE = re.compile(r"\([^;]*,\s*\)", re.IGNORECASE | re.DOTALL)
 VAR_REF_RE = re.compile(r"\{\{#([^#{}]+)#\}\}")
+TEMPLATE_DICT_METHOD_RE = re.compile(r"\.\s*(items|keys|values)\s*\(\s*\)")
 
 
 class Report:
@@ -309,6 +310,14 @@ def validate_node(report: Report, node_id: str, data: dict[str, Any]) -> None:
     elif node_type == "parameter-extractor":
         if not isinstance(data.get("parameters"), list):
             report.error(f"Parameter extractor node {node_id} ({title}) missing parameters list.")
+
+    elif node_type == "template-transform":
+        template = data.get("template")
+        if isinstance(template, str) and TEMPLATE_DICT_METHOD_RE.search(template):
+            report.warn(
+                f"Template-transform node {node_id} ({title}) uses .items()/.keys()/.values() "
+                f"which fails in Dify's Jinja2 sandbox. Pre-process dict in a code node instead."
+            )
 
     elif node_type == "loop":
         loop_variables = data.get("loop_variables")

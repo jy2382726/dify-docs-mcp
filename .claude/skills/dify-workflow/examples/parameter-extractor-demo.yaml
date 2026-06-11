@@ -1,0 +1,191 @@
+app:
+  name: "参数提取节点演示"
+  description: "演示参数提取节点的功能配置与数据流转，从自然语言中提取结构化参数"
+  icon: "🔍"
+  icon_type: emoji
+  icon_background: "#E4FBCC"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods: [local_file, remote_url]
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: [local_file, remote_url]
+      number_limits: 3
+    opening_statement: ""
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+  graph:
+    nodes:
+      # ── 开始节点：接收用户自然语言输入 ──
+      - data:
+          title: "开始"
+          type: start
+          variables:
+            - label: "订单描述"
+              variable: order_text
+              type: paragraph
+              required: true
+              max_length: 1000
+          selected: false
+        id: "start_1"
+        position: { x: 80, y: 300 }
+        positionAbsolute: { x: 80, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ── 参数提取节点：核心演示对象 ──
+      - data:
+          title: "订单参数提取"
+          type: parameter-extractor
+          instruction: "从用户输入的订单描述中提取商品名称、购买数量和配送地址。如果某个字段在输入中未提及，返回空字符串。"
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-plus
+            mode: chat
+            completion_params:
+              temperature: 0.1
+          parameters:
+            - name: product_name
+              description: "商品名称，例如 iPhone 16 Pro Max、MacBook Air 等"
+              required: true
+              type: string
+            - name: quantity
+              description: "购买数量，阿拉伯数字"
+              required: true
+              type: number
+            - name: delivery_address
+              description: "配送地址，完整地址文本"
+              required: true
+              type: string
+          query: ["start_1", order_text]
+          reasoning_mode: prompt
+          vision:
+            enabled: false
+          selected: false
+        id: "param_extractor_1"
+        position: { x: 380, y: 300 }
+        positionAbsolute: { x: 380, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ── 模板节点：格式化展示数据流转结果 ──
+      - data:
+          title: "格式化输出"
+          type: template-transform
+          variables:
+            - variable: product_name
+              value_selector: ["param_extractor_1", product_name]
+            - variable: quantity
+              value_selector: ["param_extractor_1", quantity]
+            - variable: delivery_address
+              value_selector: ["param_extractor_1", delivery_address]
+          template: |
+            ✅ 参数提取完成
+
+            ━━━━━━━━━━━━━━━━━━━━━━━━━
+            📦 商品名称：{{ product_name }}
+            🔢 购买数量：{{ quantity }}
+            📍 配送地址：{{ delivery_address }}
+            ━━━━━━━━━━━━━━━━━━━━━━━━━
+
+            数据流转路径：
+            原始输入 → 参数提取器（LLM 结构化）→ 模板渲染 → 最终输出
+          selected: false
+        id: "template_1"
+        position: { x: 680, y: 300 }
+        positionAbsolute: { x: 680, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ── 结束节点 ──
+      - data:
+          title: "结束"
+          type: end
+          outputs:
+            - variable: result
+              value_selector: ["template_1", output]
+          selected: false
+        id: "end_1"
+        position: { x: 980, y: 300 }
+        positionAbsolute: { x: 980, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+    edges:
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: start
+          targetType: parameter-extractor
+        id: start_1-source-param_extractor_1-target
+        selected: false
+        source: "start_1"
+        sourceHandle: source
+        target: "param_extractor_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: parameter-extractor
+          targetType: template-transform
+        id: param_extractor_1-source-template_1-target
+        selected: false
+        source: "param_extractor_1"
+        sourceHandle: source
+        target: "template_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: template-transform
+          targetType: end
+        id: template_1-source-end_1-target
+        selected: false
+        source: "template_1"
+        sourceHandle: source
+        target: "end_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8

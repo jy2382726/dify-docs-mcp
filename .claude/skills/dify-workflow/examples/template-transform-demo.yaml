@@ -1,0 +1,214 @@
+app:
+  name: "模板转化演示"
+  description: "演示模板转化节点的 Jinja2 模板能力，包括变量插值、循环、条件判断"
+  icon: "📝"
+  icon_type: emoji
+  icon_background: "#E4FBCC"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: "0.6.0"
+dependencies: []
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods: [local_file, remote_url]
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: [local_file, remote_url]
+      number_limits: 3
+    opening_statement: ""
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+  graph:
+    nodes:
+      - data:
+          title: "开始"
+          type: start
+          variables:
+            - label: "JSON 数据"
+              variable: json_data
+              type: paragraph
+              required: true
+              max_length: 10000
+            - label: "报告标题"
+              variable: report_title
+              type: text-input
+              required: true
+              max_length: 200
+          selected: false
+        id: "start_1"
+        position: { x: 80, y: 300 }
+        positionAbsolute: { x: 80, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      - data:
+          title: "解析数据"
+          type: code
+          code_language: python3
+          code: |
+            import json
+
+            def main(json_data: str) -> dict:
+                try:
+                    data = json.loads(json_data)
+                except json.JSONDecodeError:
+                    return {"items": [], "total": 0}
+                items = data if isinstance(data, list) else [data]
+                rows = []
+                for i, item in enumerate(items, 1):
+                    lines = []
+                    for key, value in item.items():
+                        lines.append(f"- {key}: {value}")
+                    rows.append({
+                        "index": i,
+                        "detail": "\n".join(lines)
+                    })
+                return {"items": rows, "total": len(items)}
+          variables:
+            - value_selector: ["start_1", json_data]
+              variable: json_data
+          outputs:
+            items:
+              type: array[object]
+              children: null
+            total:
+              type: number
+              children: null
+          desc: ""
+          selected: false
+        id: "code_parse"
+        position: { x: 380, y: 300 }
+        positionAbsolute: { x: 380, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      - data:
+          title: "生成报告"
+          type: template-transform
+          variables:
+            - variable: title
+              value_selector: ["start_1", report_title]
+            - variable: items
+              value_selector: ["code_parse", items]
+            - variable: total
+              value_selector: ["code_parse", total]
+          template: |
+            # {{ title }}
+
+            数据总量：{{ total }} 条
+
+            {% if total == 0 %}
+            暂无数据。
+            {% elif total == 1 %}
+            仅有 1 条数据：
+            {% else %}
+            共 {{ total }} 条数据，明细如下：
+            {% endif %}
+
+            {% for item in items %}
+            ## 第 {{ item.index }} 条
+            {{ item.detail }}
+            {% if not loop.last %}
+
+            ---
+            {% endif %}
+            {% endfor %}
+
+            {% if total > 0 %}
+            ---
+            报告生成完毕，共 {{ total }} 条记录。
+            {% endif %}
+          selected: false
+        id: "template_report"
+        position: { x: 680, y: 300 }
+        positionAbsolute: { x: 680, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      - data:
+          title: "结束"
+          type: end
+          outputs:
+            - variable: report
+              value_selector: ["template_report", output]
+          selected: false
+        id: "end_1"
+        position: { x: 980, y: 300 }
+        positionAbsolute: { x: 980, y: 300 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+    edges:
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: start
+          targetType: code
+        id: start_1-source-code_parse-target
+        selected: false
+        source: "start_1"
+        sourceHandle: source
+        target: "code_parse"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: code
+          targetType: template-transform
+        id: code_parse-source-template_report-target
+        selected: false
+        source: "code_parse"
+        sourceHandle: source
+        target: "template_report"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: template-transform
+          targetType: end
+        id: template_report-source-end_1-target
+        selected: false
+        source: "template_report"
+        sourceHandle: source
+        target: "end_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8
