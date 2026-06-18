@@ -1,0 +1,1307 @@
+app:
+  name: "全节点演示：智能多源分析报告生成器"
+  description: "覆盖 Dify 1.4.2 全部 18 种内置处理节点 + 画布注释的工作流演示"
+  icon: "🤖"
+  icon_type: emoji
+  icon_background: "#FFEAD5"
+  mode: workflow
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+dependencies:
+  - current_identifier: null
+    type: marketplace
+    value:
+      marketplace_plugin_unique_identifier: langgenius/tongyi:0.1.36@73e3e28eca163b96da65ef9eab8633f9e7257213ff0d2f2bed93b28b552d2cda
+      version: null
+  - current_identifier: null
+    type: marketplace
+    value:
+      marketplace_plugin_unique_identifier: langgenius/tavily:0.0.4@d6d4f0e9a0c44a51b2e4dc6f7e6f67db73cab5a44d19fd7a4c674ab5ab3ab1e7
+      version: null
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: true
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    nodes:
+      # ========== 画布注释 ==========
+      - data:
+          author: ""
+          desc: "本工作流演示 Dify 1.4.2 全部 18 种内置处理节点"
+          height: 60
+          selected: false
+          showAuthor: false
+          text: "本工作流演示 Dify 1.4.2 全部 18 种内置处理节点，包含：start、end、llm、code、template-transform、if-else、question-classifier、parameter-extractor、http-request、tool、variable-aggregator、assigner、document-extractor、list-operator、knowledge-retrieval、agent、iteration、loop"
+          theme: blue
+          title: ""
+          type: ""
+          width: 600
+        id: "note_1"
+        position: { x: 100, y: 40 }
+        positionAbsolute: { x: 100, y: 40 }
+        selected: false
+        type: custom-note
+
+      # ========== 阶段一：输入与文件处理 ==========
+      # 1. start
+      - data:
+          title: "开始"
+          type: start
+          variables:
+            - label: "研究主题"
+              variable: topic
+              type: text-input
+              required: true
+              max_length: 200
+            - label: "参考文件"
+              variable: upload_files
+              type: file-list
+              required: false
+          selected: false
+        id: "start_1"
+        position: { x: 100, y: 200 }
+        positionAbsolute: { x: 100, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 2. if-else：判断是否上传了文件
+      - data:
+          title: "有无文件"
+          type: if-else
+          cases:
+            - id: "true"
+              case_id: "true"
+              logical_operator: and
+              conditions:
+                - id: 0b5f09ef-0000-4000-9000-000000000010
+                  variable_selector: ["start_1", upload_files]
+                  comparison_operator: not empty
+                  value: ""
+                  varType: array[file]
+          selected: false
+        id: "if_else_1"
+        position: { x: 400, y: 200 }
+        positionAbsolute: { x: 400, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 3. list-operator：取第 1 个文件（true 分支）
+      - data:
+          title: "取第 1 个文件"
+          type: list-operator
+          filter_by:
+            conditions:
+              - comparison_operator: contains
+                key: name
+                value: ""
+            enabled: false
+          order_by:
+            enabled: false
+            key: ""
+            value: asc
+          extract_by:
+            enabled: true
+            serial: "1"
+          item_var_type: file
+          limit:
+            enabled: false
+            size: 10
+          var_type: array[file]
+          variable: ["start_1", upload_files]
+          selected: false
+        id: "list_op_1"
+        position: { x: 700, y: 100 }
+        positionAbsolute: { x: 700, y: 100 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 4. document-extractor：提取文档文本（true 分支）
+      - data:
+          title: "文档提取器"
+          type: document-extractor
+          variable_selector: ["list_op_1", result]
+          selected: false
+        id: "doc_extractor_1"
+        position: { x: 1000, y: 100 }
+        positionAbsolute: { x: 1000, y: 100 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 5. code：生成空字符串（false 分支占位）
+      - data:
+          title: "空文本占位"
+          type: code
+          code_language: python3
+          code: |
+            def main() -> dict:
+                return {"empty_text": ""}
+          variables: []
+          outputs:
+            empty_text:
+              type: string
+              children: null
+          desc: ""
+          selected: false
+        id: "code_empty"
+        position: { x: 700, y: 320 }
+        positionAbsolute: { x: 700, y: 320 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 6. variable-aggregator-1：合并有无文件分支
+      - data:
+          title: "合并文件分支"
+          type: variable-aggregator
+          output_type: string
+          variables:
+            - ["doc_extractor_1", text]
+            - ["code_empty", empty_text]
+          selected: false
+        id: "var_agg_1"
+        position: { x: 1300, y: 200 }
+        positionAbsolute: { x: 1300, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ========== 阶段二：智能分类与多源信息收集 ==========
+      # 7. question-classifier：将查询分为三类
+      - data:
+          title: "问题分类器"
+          type: question-classifier
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-flash
+            mode: chat
+            completion_params:
+              temperature: 0
+          query_variable_selector: ["start_1", topic]
+          classes:
+            - id: "1"
+              name: "技术调研"
+            - id: "2"
+              name: "市场分析"
+            - id: "3"
+              name: "通用报告"
+          instruction: "将用户的研究主题分类到最合适的一类。'技术调研'涉及技术、编程、架构等；'市场分析'涉及市场、竞品、行业趋势等；其余归为'通用报告'。"
+          vision:
+            enabled: false
+          selected: false
+        id: "classifier_1"
+        position: { x: 1600, y: 200 }
+        positionAbsolute: { x: 1600, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # --- 分支 1：技术调研 ---
+      # 8. knowledge-retrieval
+      - data:
+          title: "知识检索"
+          type: knowledge-retrieval
+          dataset_ids:
+            - "dataset-id"
+          query_variable_selector: ["start_1", topic]
+          retrieval_mode: multiple
+          multiple_retrieval_config:
+            top_k: 4
+            reranking_enable: false
+            score_threshold_enabled: false
+            score_threshold: 0
+          metadata_filtering_mode: disabled
+          selected: false
+        id: "kg_retrieval_1"
+        position: { x: 1900, y: 0 }
+        positionAbsolute: { x: 1900, y: 0 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 9. llm-RAG：结合知识库结果进行技术分析
+      - data:
+          title: "技术分析"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-flash
+            mode: chat
+            completion_params:
+              temperature: 0.3
+          prompt_template:
+            - id: 9e05cb8e-0000-4000-9000-000000000010
+              role: system
+              text: "你是一个技术调研专家。根据知识库检索结果和用户提供的信息，生成一份技术分析报告。"
+            - id: 9e05cb8e-0000-4000-9000-000000000011
+              role: user
+              text: |
+                研究主题：{{#start_1.topic#}}
+                参考文件内容：{{#var_agg_1.output#}}
+                知识库检索结果：{{#kg_retrieval_1.result#}}
+
+                请生成技术分析报告。
+          context:
+            enabled: true
+            variable_selector: ["kg_retrieval_1", result]
+          memory:
+            query_prompt_template: ""
+            role_prefix:
+              assistant: ""
+              user: ""
+            window:
+              enabled: false
+              size: 50
+          vision:
+            enabled: false
+          selected: false
+        id: "llm_rag"
+        position: { x: 2200, y: 0 }
+        positionAbsolute: { x: 2200, y: 0 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # --- 分支 2：市场分析 ---
+      # 10. http-request：调用市场数据 API（GET + query string，避免 body 的 JSON 解析陷阱）
+      - data:
+          title: "市场数据请求"
+          type: http-request
+          method: get
+          url: "https://httpbin.org/get?topic={{#start_1.topic#}}"
+          headers: ""
+          params: ""
+          body:
+            type: none
+            data: []
+          authorization:
+            type: no-auth
+            config: null
+          timeout:
+            max_connect_timeout: 10
+            max_read_timeout: 60
+            max_write_timeout: 10
+          retry_config:
+            retry_enabled: false
+          selected: false
+        id: "http_req_1"
+        position: { x: 1900, y: 200 }
+        positionAbsolute: { x: 1900, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 11. code：解析 HTTP 返回的 JSON（httpbin /get 会把 query 参数回显到 args 字段）
+      - data:
+          title: "解析市场数据"
+          type: code
+          code_language: python3
+          code: |
+            import json
+
+            def main(body: str) -> dict:
+                try:
+                    data = json.loads(body)
+                    parsed = {
+                        "topic": data.get("args", {}).get("topic", "未知主题"),
+                        "status": "success"
+                    }
+                except Exception:
+                    parsed = {"topic": "解析失败", "status": "error"}
+                return {"parsed_data": json.dumps(parsed, ensure_ascii=False)}
+          variables:
+            - value_selector: ["http_req_1", body]
+              variable: body
+          outputs:
+            parsed_data:
+              type: string
+              children: null
+          desc: ""
+          selected: false
+        id: "code_parse"
+        position: { x: 2200, y: 200 }
+        positionAbsolute: { x: 2200, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 12. template-transform：Jinja2 格式化市场数据
+      - data:
+          title: "格式化市场数据"
+          type: template-transform
+          variables:
+            - variable: data
+              value_selector: ["code_parse", parsed_data]
+          template: |
+            市场分析数据报告
+            ================
+            {{ data }}
+
+            基于以上市场数据，已完成市场分析信息收集。
+          selected: false
+        id: "tpl_transform_1"
+        position: { x: 2500, y: 200 }
+        positionAbsolute: { x: 2500, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # --- 分支 3：通用报告 ---
+      # 13. parameter-extractor：提取搜索关键词
+      - data:
+          title: "提取搜索关键词"
+          type: parameter-extractor
+          instruction: "从研究主题中提取最适合搜索的关键词。"
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-flash
+            mode: chat
+            completion_params:
+              temperature: 0.1
+          parameters:
+            - name: keywords
+              description: "用于搜索引擎的优化关键词"
+              required: true
+              type: string
+          query: ["start_1", topic]
+          reasoning_mode: prompt
+          vision:
+            enabled: false
+          selected: false
+        id: "param_extractor_1"
+        position: { x: 1900, y: 400 }
+        positionAbsolute: { x: 1900, y: 400 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 14. tool：搜索引擎工具
+      - data:
+          title: "搜索引擎"
+          type: tool
+          provider_id: langgenius/tavily/tavily
+          provider_name: langgenius/tavily/tavily
+          provider_type: builtin
+          plugin_id: langgenius/tavily
+          tool_name: tavily_search
+          tool_label: "Tavily Search"
+          tool_description: "搜索引擎工具"
+          tool_node_version: "2"
+          tool_configurations: {}
+          tool_parameters:
+            query:
+              type: mixed
+              value: "{{#param_extractor_1.keywords#}}"
+          selected: false
+        id: "tool_search_1"
+        position: { x: 2200, y: 400 }
+        positionAbsolute: { x: 2200, y: 400 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # 15. variable-aggregator-2：合并三类信息收集结果
+      - data:
+          title: "合并分类结果"
+          type: variable-aggregator
+          output_type: string
+          variables:
+            - ["llm_rag", text]
+            - ["tpl_transform_1", output]
+            - ["tool_search_1", text]
+          selected: false
+        id: "var_agg_2"
+        position: { x: 2800, y: 200 }
+        positionAbsolute: { x: 2800, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ========== 阶段三：深度分析与迭代优化 ==========
+      # 16. code（拆分维度）：将聚合文本拆分为字符串数组
+      - data:
+          title: "拆分分析维度"
+          type: code
+          code_language: python3
+          code: |
+            def main(text: str) -> dict:
+                sections = text.split("\n\n") if text else ["默认分析维度"]
+                items = [s.strip() for s in sections if s.strip()]
+                if not items:
+                    items = ["默认分析维度"]
+                return {"dimensions": items}
+          variables:
+            - value_selector: ["var_agg_2", output]
+              variable: text
+          outputs:
+            dimensions:
+              type: array[string]
+              children: null
+          desc: ""
+          selected: false
+        id: "code_split"
+        position: { x: 3100, y: 200 }
+        positionAbsolute: { x: 3100, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ========== iteration 容器：遍历各分析维度 ==========
+      - data:
+          title: "逐维度深入分析"
+          type: iteration
+          iterator_selector: ["code_split", dimensions]
+          output_selector: ["iter_llm_1", text]
+          output_type: array[string]
+          is_parallel: false
+          parallel_nums: 3
+          start_node_id: "iteration_start_1"
+          startNodeType: llm
+          error_handle_mode: remove-abnormal-output
+          desc: ""
+          selected: false
+          width: 500
+        id: "iteration_1"
+        position: { x: 3400, y: 200 }
+        positionAbsolute: { x: 3400, y: 200 }
+        selected: false
+        type: custom
+        width: 500
+        height: 292
+
+      # iteration-start 辅助节点
+      - data:
+          desc: ""
+          isInIteration: true
+          selected: false
+          title: ""
+          type: iteration-start
+        draggable: false
+        height: 48
+        id: "iteration_start_1"
+        parentId: "iteration_1"
+        position: { x: 24, y: 68 }
+        positionAbsolute: { x: 3424, y: 268 }
+        selectable: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom-iteration-start
+        width: 44
+        zIndex: 1002
+
+      # iteration 内 llm：逐维度深入分析
+      - data:
+          title: "维度分析"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-flash
+            mode: chat
+            completion_params:
+              temperature: 0.3
+          prompt_template:
+            - id: 9e05cb8e-0000-4000-9000-000000000020
+              role: system
+              text: "你是一个深度分析专家。对给定的分析维度进行深入分析。"
+            - id: 9e05cb8e-0000-4000-9000-000000000021
+              role: user
+              text: |
+                研究主题：{{#start_1.topic#}}
+                当前分析维度：{{#iteration_1.item#}}
+
+                请对这个维度进行深入分析，输出 200 字以内的分析结论。
+          context:
+            enabled: false
+            variable_selector: []
+          memory:
+            query_prompt_template: ""
+            role_prefix:
+              assistant: ""
+              user: ""
+            window:
+              enabled: false
+              size: 50
+          vision:
+            enabled: false
+          isInIteration: true
+          isIterationStart: true
+          iteration_id: "iteration_1"
+          selected: true
+        extent: parent
+        height: 187
+        id: "iter_llm_1"
+        parentId: "iteration_1"
+        position: { x: 117, y: 85 }
+        positionAbsolute: { x: 3517, y: 285 }
+        selected: true
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 242
+        zIndex: 1001
+
+      # 17. code（合并）：将 iteration 输出合并为单一文本
+      - data:
+          title: "合并维度分析"
+          type: code
+          code_language: python3
+          code: |
+            def main(items: list) -> dict:
+                if not items:
+                    return {"merged_text": ""}
+                merged = "\n\n---\n\n".join(str(item) for item in items)
+                return {"merged_text": merged}
+          variables:
+            - value_selector: ["iteration_1", output]
+              variable: items
+          outputs:
+            merged_text:
+              type: string
+              children: null
+          desc: ""
+          selected: false
+        id: "code_merge"
+        position: { x: 4000, y: 200 }
+        positionAbsolute: { x: 4000, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+      # ========== loop 容器：迭代优化报告质量 ==========
+      - data:
+          title: "迭代优化报告"
+          type: loop
+          loop_count: 5
+          start_node_id: "loop_1_start"
+          loop_variables:
+            - id: 75b80ccd-0000-4000-9000-000000000020
+              label: report_text
+              value: ["code_merge", merged_text]
+              value_type: variable
+              var_type: string
+            - id: 75b80ccd-0000-4000-9000-000000000021
+              label: quality_score
+              value: "0"
+              value_type: constant
+              var_type: number
+          break_conditions:
+            - id: 27945f3a-0000-4000-9000-000000000020
+              variable_selector: ["loop_1", quality_score]
+              comparison_operator: ≥
+              value: "8"
+              varType: number
+          logical_operator: and
+          error_handle_mode: terminated
+          selected: false
+        id: "loop_1"
+        position: { x: 4300, y: 200 }
+        positionAbsolute: { x: 4300, y: 200 }
+        selected: false
+        type: custom
+        width: 688
+        height: 350
+
+      # loop-start 辅助节点
+      - data:
+          desc: ""
+          isInLoop: true
+          selected: false
+          title: ""
+          type: loop-start
+        draggable: false
+        height: 48
+        id: "loop_1_start"
+        parentId: "loop_1"
+        position: { x: 24, y: 68 }
+        positionAbsolute: { x: 4324, y: 268 }
+        selectable: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom-loop-start
+        width: 44
+        zIndex: 1002
+
+      # loop 内 llm：改进报告
+      - data:
+          title: "改进报告"
+          type: llm
+          model:
+            provider: langgenius/tongyi/tongyi
+            name: qwen3.5-flash
+            mode: chat
+            completion_params:
+              temperature: 0.5
+          prompt_template:
+            - id: 9e05cb8e-0000-4000-9000-000000000030
+              role: system
+              text: "你是一个报告优化专家。根据质量反馈改进报告。"
+            - id: 9e05cb8e-0000-4000-9000-000000000031
+              role: user
+              text: |
+                当前报告内容：
+                {{#loop_1.report_text#}}
+
+                当前质量评分：{{#loop_1.quality_score#}}/10
+
+                请改进这份报告，使其更加专业、完整、结构清晰。
+          context:
+            enabled: false
+            variable_selector: []
+          memory:
+            query_prompt_template: ""
+            role_prefix:
+              assistant: ""
+              user: ""
+            window:
+              enabled: false
+              size: 50
+          vision:
+            enabled: false
+          isInLoop: true
+          loop_id: "loop_1"
+          selected: false
+        extent: parent
+        height: 52
+        id: "loop_llm_1"
+        parentId: "loop_1"
+        position: { x: 100, y: 68 }
+        positionAbsolute: { x: 4400, y: 268 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 242
+        zIndex: 1002
+
+      # loop 内 code：质量评分
+      - data:
+          title: "质量评分"
+          type: code
+          code_language: python3
+          code: |
+            def main(text: str) -> dict:
+                score = 5.0
+                length = len(text)
+                if length > 500:
+                    score += 1.0
+                if length > 1000:
+                    score += 1.0
+                if "总结" in text or "结论" in text:
+                    score += 1.0
+                if score > 10:
+                    score = 10
+                return {"improved_text": text, "score": score}
+          variables:
+            - value_selector: ["loop_llm_1", text]
+              variable: text
+          outputs:
+            improved_text:
+              type: string
+              children: null
+            score:
+              type: number
+              children: null
+          desc: ""
+          isInLoop: true
+          loop_id: "loop_1"
+          selected: false
+        extent: parent
+        height: 52
+        id: "loop_code_1"
+        parentId: "loop_1"
+        position: { x: 380, y: 68 }
+        positionAbsolute: { x: 4680, y: 268 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 242
+        zIndex: 1002
+
+      # loop 内 assigner：写回 loop_variables
+      - data:
+          title: "更新循环变量"
+          type: assigner
+          version: "2"
+          isInLoop: true
+          isInIteration: false
+          loop_id: "loop_1"
+          items:
+            - input_type: variable
+              operation: over-write
+              value: ["loop_code_1", improved_text]
+              variable_selector: ["loop_1", report_text]
+            - input_type: variable
+              operation: over-write
+              value: ["loop_code_1", score]
+              variable_selector: ["loop_1", quality_score]
+          selected: false
+        height: 110
+        id: "loop_assigner_1"
+        parentId: "loop_1"
+        position: { x: 380, y: 200 }
+        positionAbsolute: { x: 4680, y: 400 }
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 242
+        zIndex: 1002
+
+      # ========== 阶段四：最终输出 ==========
+      # 18. agent：最终润色
+      - data:
+          title: "最终润色"
+          type: agent
+          tool_node_version: "2"
+          agent_strategy_provider_name: langgenius/agent/agent
+          agent_strategy_name: function_calling
+          agent_strategy_label: FunctionCalling
+          agent_parameters:
+            model:
+              type: constant
+              value:
+                provider: langgenius/tongyi/tongyi
+                name: qwen3.5-flash
+                mode: chat
+                completion_params:
+                  temperature: 0.3
+            query:
+              type: constant
+              value: |
+                请对以下报告进行最终润色，确保语言流畅、结构清晰、专业性强：
+                {{#loop_1.report_text#}}
+            instruction:
+              type: constant
+              value: "你是一个专业的报告编辑，擅长润色和优化报告。如果需要补充信息，可以使用搜索工具。"
+            tools:
+              type: constant
+              value:
+                - enabled: true
+                  type: builtin
+                  provider_name: langgenius/tavily/tavily
+                  provider_show_name: langgenius/tavily/tavily
+                  tool_name: tavily_search
+                  tool_label: "Tavily Search"
+                  tool_description: "搜索引擎工具"
+                  extra:
+                    description: "搜索引擎工具"
+                  parameters:
+                    query:
+                      auto: 1
+                      value: null
+                    search_depth:
+                      auto: 1
+                      value: null
+                    max_results:
+                      auto: 1
+                      value: null
+                  settings:
+                    max_results:
+                      value:
+                        type: constant
+                        value: 5
+                    search_depth:
+                      value:
+                        type: constant
+                        value: advanced
+          output_schema: null
+          selected: true
+        id: "agent_1"
+        position: { x: 5100, y: 200 }
+        positionAbsolute: { x: 5100, y: 200 }
+        selected: true
+        type: custom
+        width: 243
+        height: 89
+
+      # 19. end（agent 直接输出，workflow 模式下无合法的全局可写变量，故不再使用额外 assigner 节点）
+      - data:
+          title: "结束"
+          type: end
+          outputs:
+            - variable: final_report
+              value_selector: ["agent_1", text]
+          selected: false
+        id: "end_1"
+        position: { x: 5400, y: 200 }
+        positionAbsolute: { x: 5400, y: 200 }
+        selected: false
+        type: custom
+        width: 243
+        height: 89
+
+    edges:
+      # ========== 阶段一：输入与文件处理 ==========
+      # start → if-else
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: start
+          targetType: if-else
+        id: start_1-source-if_else_1-target
+        selected: false
+        source: "start_1"
+        sourceHandle: source
+        target: "if_else_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # if-else true → list-operator
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: if-else
+          targetType: list-operator
+        id: if_else_1-true-list_op_1-target
+        selected: false
+        source: "if_else_1"
+        sourceHandle: "true"
+        target: "list_op_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # if-else false → code-empty
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: if-else
+          targetType: code
+        id: if_else_1-false-code_empty-target
+        selected: false
+        source: "if_else_1"
+        sourceHandle: "false"
+        target: "code_empty"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # list-operator → document-extractor
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: list-operator
+          targetType: document-extractor
+        id: list_op_1-source-doc_extractor_1-target
+        selected: false
+        source: "list_op_1"
+        sourceHandle: source
+        target: "doc_extractor_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # document-extractor → variable-aggregator-1
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: document-extractor
+          targetType: variable-aggregator
+        id: doc_extractor_1-source-var_agg_1-target
+        selected: false
+        source: "doc_extractor_1"
+        sourceHandle: source
+        target: "var_agg_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # code-empty → variable-aggregator-1
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: code
+          targetType: variable-aggregator
+        id: code_empty-source-var_agg_1-target
+        selected: false
+        source: "code_empty"
+        sourceHandle: source
+        target: "var_agg_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # ========== 阶段二：智能分类 ==========
+      # variable-aggregator-1 → question-classifier
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: variable-aggregator
+          targetType: question-classifier
+        id: var_agg_1-source-classifier_1-target
+        selected: false
+        source: "var_agg_1"
+        sourceHandle: source
+        target: "classifier_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # --- 分类 1：技术调研 ---
+      # classifier(1) → knowledge-retrieval
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: question-classifier
+          targetType: knowledge-retrieval
+        id: classifier_1-1-kg_retrieval_1-target
+        selected: false
+        source: "classifier_1"
+        sourceHandle: "1"
+        target: "kg_retrieval_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # knowledge-retrieval → llm-RAG
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: knowledge-retrieval
+          targetType: llm
+        id: kg_retrieval_1-source-llm_rag-target
+        selected: false
+        source: "kg_retrieval_1"
+        sourceHandle: source
+        target: "llm_rag"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # llm-RAG → variable-aggregator-2
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: llm
+          targetType: variable-aggregator
+        id: llm_rag-source-var_agg_2-target
+        selected: false
+        source: "llm_rag"
+        sourceHandle: source
+        target: "var_agg_2"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # --- 分类 2：市场分析 ---
+      # classifier(2) → http-request
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: question-classifier
+          targetType: http-request
+        id: classifier_1-2-http_req_1-target
+        selected: false
+        source: "classifier_1"
+        sourceHandle: "2"
+        target: "http_req_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # http-request → code-parse
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: http-request
+          targetType: code
+        id: http_req_1-source-code_parse-target
+        selected: false
+        source: "http_req_1"
+        sourceHandle: source
+        target: "code_parse"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # code-parse → template-transform
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: code
+          targetType: template-transform
+        id: code_parse-source-tpl_transform_1-target
+        selected: false
+        source: "code_parse"
+        sourceHandle: source
+        target: "tpl_transform_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # template-transform → variable-aggregator-2
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: template-transform
+          targetType: variable-aggregator
+        id: tpl_transform_1-source-var_agg_2-target
+        selected: false
+        source: "tpl_transform_1"
+        sourceHandle: source
+        target: "var_agg_2"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # --- 分类 3：通用报告 ---
+      # classifier(3) → parameter-extractor
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: question-classifier
+          targetType: parameter-extractor
+        id: classifier_1-3-param_extractor_1-target
+        selected: false
+        source: "classifier_1"
+        sourceHandle: "3"
+        target: "param_extractor_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # parameter-extractor → tool-search
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: parameter-extractor
+          targetType: tool
+        id: param_extractor_1-source-tool_search_1-target
+        selected: false
+        source: "param_extractor_1"
+        sourceHandle: source
+        target: "tool_search_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # tool-search → variable-aggregator-2
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: tool
+          targetType: variable-aggregator
+        id: tool_search_1-source-var_agg_2-target
+        selected: false
+        source: "tool_search_1"
+        sourceHandle: source
+        target: "var_agg_2"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # ========== 阶段三：深度分析 ==========
+      # variable-aggregator-2 → code-split
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: variable-aggregator
+          targetType: code
+        id: var_agg_2-source-code_split-target
+        selected: false
+        source: "var_agg_2"
+        sourceHandle: source
+        target: "code_split"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # code-split → iteration
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: code
+          targetType: iteration
+        id: code_split-source-iteration_1-target
+        selected: false
+        source: "code_split"
+        sourceHandle: source
+        target: "iteration_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # iteration 内部：iteration-start → iter-llm
+      - data:
+          isInIteration: true
+          isInLoop: false
+          iteration_id: "iteration_1"
+          sourceType: iteration-start
+          targetType: llm
+        id: iteration_start_1-source-iter_llm_1-target
+        source: "iteration_start_1"
+        sourceHandle: source
+        target: "iter_llm_1"
+        targetHandle: target
+        type: custom
+        zIndex: 1002
+
+      # iteration → code-merge
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: iteration
+          targetType: code
+        id: iteration_1-source-code_merge-target
+        selected: false
+        source: "iteration_1"
+        sourceHandle: source
+        target: "code_merge"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # code-merge → loop
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: code
+          targetType: loop
+        id: code_merge-source-loop_1-target
+        selected: false
+        source: "code_merge"
+        sourceHandle: source
+        target: "loop_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # loop 内部：loop-start → loop-llm
+      - data:
+          isInIteration: false
+          isInLoop: true
+          loop_id: "loop_1"
+          sourceType: loop-start
+          targetType: llm
+        id: loop_1_start-source-loop_llm_1-target
+        source: "loop_1_start"
+        sourceHandle: source
+        target: "loop_llm_1"
+        targetHandle: target
+        type: custom
+        zIndex: 1002
+
+      # loop 内部：loop-llm → loop-code
+      - data:
+          isInIteration: false
+          isInLoop: true
+          loop_id: "loop_1"
+          sourceType: llm
+          targetType: code
+        id: loop_llm_1-source-loop_code_1-target
+        source: "loop_llm_1"
+        sourceHandle: source
+        target: "loop_code_1"
+        targetHandle: target
+        type: custom
+        zIndex: 1002
+
+      # loop 内部：loop-code → loop-assigner
+      - data:
+          isInIteration: false
+          isInLoop: true
+          loop_id: "loop_1"
+          sourceType: code
+          targetType: assigner
+        id: loop_code_1-source-loop_assigner_1-target
+        source: "loop_code_1"
+        sourceHandle: source
+        target: "loop_assigner_1"
+        targetHandle: target
+        type: custom
+        zIndex: 1002
+
+      # ========== 阶段四：最终输出 ==========
+      # loop → agent
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: loop
+          targetType: agent
+        id: loop_1-source-agent_1-target
+        selected: false
+        source: "loop_1"
+        sourceHandle: source
+        target: "agent_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+      # agent → end
+      - data:
+          isInLoop: false
+          isInIteration: false
+          sourceType: agent
+          targetType: end
+        id: agent_1-source-end_1-target
+        selected: false
+        source: "agent_1"
+        sourceHandle: source
+        target: "end_1"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.5

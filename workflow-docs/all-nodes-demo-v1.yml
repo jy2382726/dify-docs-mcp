@@ -1,0 +1,1367 @@
+app:
+  description: 覆盖 Dify 1.4.2 全部 18 种内置处理节点 + 画布注释的工作流演示
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: 全节点演示：智能多源分析报告生成器
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tavily:0.1.10@b43f5dc49fbafc69949ee8231d600b23fb7586d514f4c72e470a86af03d2173d
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.1.36@73e3e28eca163b96da65ef9eab8633f9e7257213ff0d2f2bed93b28b552d2cda
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: true
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: if-else
+      id: start_1-source-if_else_1-target
+      selected: false
+      source: start_1
+      sourceHandle: source
+      target: if_else_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: if_else_1-false-code_empty-target
+      selected: false
+      source: if_else_1
+      sourceHandle: 'false'
+      target: code_empty
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: document-extractor
+        targetType: variable-aggregator
+      id: doc_extractor_1-source-var_agg_1-target
+      selected: false
+      source: doc_extractor_1
+      sourceHandle: source
+      target: var_agg_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: variable-aggregator
+      id: code_empty-source-var_agg_1-target
+      selected: false
+      source: code_empty
+      sourceHandle: source
+      target: var_agg_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: variable-aggregator
+        targetType: question-classifier
+      id: var_agg_1-source-classifier_1-target
+      selected: false
+      source: var_agg_1
+      sourceHandle: source
+      target: classifier_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: classifier_1-1-kg_retrieval_1-target
+      selected: false
+      source: classifier_1
+      sourceHandle: '1'
+      target: kg_retrieval_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: kg_retrieval_1-source-llm_rag-target
+      selected: false
+      source: kg_retrieval_1
+      sourceHandle: source
+      target: llm_rag
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: variable-aggregator
+      id: llm_rag-source-var_agg_2-target
+      selected: false
+      source: llm_rag
+      sourceHandle: source
+      target: var_agg_2
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: http-request
+      id: classifier_1-2-http_req_1-target
+      selected: false
+      source: classifier_1
+      sourceHandle: '2'
+      target: http_req_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: code
+      id: http_req_1-source-code_parse-target
+      selected: false
+      source: http_req_1
+      sourceHandle: source
+      target: code_parse
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: template-transform
+      id: code_parse-source-tpl_transform_1-target
+      selected: false
+      source: code_parse
+      sourceHandle: source
+      target: tpl_transform_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: template-transform
+        targetType: variable-aggregator
+      id: tpl_transform_1-source-var_agg_2-target
+      selected: false
+      source: tpl_transform_1
+      sourceHandle: source
+      target: var_agg_2
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: parameter-extractor
+      id: classifier_1-3-param_extractor_1-target
+      selected: false
+      source: classifier_1
+      sourceHandle: '3'
+      target: param_extractor_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: tool
+      id: param_extractor_1-source-tool_search_1-target
+      selected: false
+      source: param_extractor_1
+      sourceHandle: source
+      target: tool_search_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: variable-aggregator
+      id: tool_search_1-source-var_agg_2-target
+      selected: false
+      source: tool_search_1
+      sourceHandle: source
+      target: var_agg_2
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: variable-aggregator
+        targetType: code
+      id: var_agg_2-source-code_split-target
+      selected: false
+      source: var_agg_2
+      sourceHandle: source
+      target: code_split
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: iteration
+      id: code_split-source-iteration_1-target
+      selected: false
+      source: code_split
+      sourceHandle: source
+      target: iteration_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: iteration_1
+        sourceType: iteration-start
+        targetType: llm
+      id: iteration_start_1-source-iter_llm_1-target
+      source: iteration_start_1
+      sourceHandle: source
+      target: iter_llm_1
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: iteration
+        targetType: code
+      id: iteration_1-source-code_merge-target
+      selected: false
+      source: iteration_1
+      sourceHandle: source
+      target: code_merge
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: loop
+      id: code_merge-source-loop_1-target
+      selected: false
+      source: code_merge
+      sourceHandle: source
+      target: loop_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: true
+        loop_id: loop_1
+        sourceType: loop-start
+        targetType: llm
+      id: loop_1_start-source-loop_llm_1-target
+      source: loop_1_start
+      sourceHandle: source
+      target: loop_llm_1
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: false
+        isInLoop: true
+        loop_id: loop_1
+        sourceType: llm
+        targetType: code
+      id: loop_llm_1-source-loop_code_1-target
+      source: loop_llm_1
+      sourceHandle: source
+      target: loop_code_1
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: false
+        isInLoop: true
+        loop_id: loop_1
+        sourceType: code
+        targetType: assigner
+      id: loop_code_1-source-loop_assigner_1-target
+      source: loop_code_1
+      sourceHandle: source
+      target: loop_assigner_1
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: loop
+        targetType: agent
+      id: loop_1-source-agent_1-target
+      selected: false
+      source: loop_1
+      sourceHandle: source
+      target: agent_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: agent
+        targetType: end
+      id: agent_1-source-end_1-target
+      selected: false
+      source: agent_1
+      sourceHandle: source
+      target: end_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: list-operator
+      id: if_else_1-true-1781490337448-target
+      source: if_else_1
+      sourceHandle: 'true'
+      target: '1781490337448'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: list-operator
+        targetType: document-extractor
+      id: 1781490337448-source-doc_extractor_1-target
+      source: '1781490337448'
+      sourceHandle: source
+      target: doc_extractor_1
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        author: ''
+        desc: 本工作流演示 Dify 1.4.2 全部 18 种内置处理节点
+        height: 60
+        selected: false
+        showAuthor: false
+        text: 本工作流演示 Dify 1.4.2 全部 18 种内置处理节点，包含：start、end、llm、code、template-transform、if-else、question-classifier、parameter-extractor、http-request、tool、variable-aggregator、assigner、document-extractor、list-operator、knowledge-retrieval、agent、iteration、loop
+        theme: blue
+        title: ''
+        type: ''
+        width: 600
+      height: 60
+      id: note_1
+      position:
+        x: 100
+        y: 40
+      positionAbsolute:
+        x: 100
+        y: 40
+      selected: false
+      type: custom-note
+      width: 600
+    - data:
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - label: 研究主题
+          max_length: 200
+          required: true
+          type: text-input
+          variable: topic
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          - image
+          allowed_file_upload_methods:
+          - local_file
+          - remote_url
+          default: ''
+          hide: false
+          hint: ''
+          label: 参考文件
+          max_length: 5
+          options: []
+          placeholder: ''
+          required: false
+          type: file-list
+          variable: upload_files
+      height: 134
+      id: start_1
+      position:
+        x: 22.85714285714289
+        y: 183.16666666666669
+      positionAbsolute:
+        x: 22.85714285714289
+        y: 183.16666666666669
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: not empty
+            id: 0b5f09ef-0000-4000-9000-000000000010
+            value: ''
+            varType: array[file]
+            variable_selector:
+            - start_1
+            - upload_files
+          id: 'true'
+          logical_operator: and
+        selected: false
+        title: 有无文件
+        type: if-else
+      height: 123
+      id: if_else_1
+      position:
+        x: 326.28571428571433
+        y: 195.59523809523807
+      positionAbsolute:
+        x: 326.28571428571433
+        y: 195.59523809523807
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        is_array_file: true
+        selected: false
+        title: 文档提取器
+        type: document-extractor
+        variable_selector:
+        - '1781490337448'
+        - result
+      height: 104
+      id: doc_extractor_1
+      position:
+        x: 1046
+        y: 27.75119047619048
+      positionAbsolute:
+        x: 1046
+        y: 27.75119047619048
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        code: "def main() -> dict:\n    return {\"empty_text\": \"\"}\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          empty_text:
+            children: null
+            type: string
+        selected: false
+        title: 空文本占位
+        type: code
+        variables: []
+      height: 51
+      id: code_empty
+      position:
+        x: 1046
+        y: 211.7511904761905
+      positionAbsolute:
+        x: 1046
+        y: 211.7511904761905
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        output_type: string
+        selected: false
+        title: 合并文件分支
+        type: variable-aggregator
+        variables:
+        - - doc_extractor_1
+          - text
+        - - code_empty
+          - empty_text
+      height: 133
+      id: var_agg_1
+      position:
+        x: 1408
+        y: 67.14404761904765
+      positionAbsolute:
+        x: 1408
+        y: 67.14404761904765
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        classes:
+        - id: '1'
+          name: 技术调研
+        - id: '2'
+          name: 市场分析
+        - id: '3'
+          name: 通用报告
+        instruction: 将用户的研究主题分类到最合适的一类。'技术调研'涉及技术、编程、架构等；'市场分析'涉及市场、竞品、行业趋势等；其余归为'通用报告'。
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: qwen3.5-flash
+          provider: langgenius/tongyi/tongyi
+        query_variable_selector:
+        - start_1
+        - topic
+        selected: false
+        title: 问题分类器
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 219
+      id: classifier_1
+      position:
+        x: 1750
+        y: 46.31071428571431
+      positionAbsolute:
+        x: 1750
+        y: 46.31071428571431
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - pNRQ7SyOnSpc/6RKrSnAnEZ+etMIHgbpeznNi38JjSj7DSkatg5TIUJPpO7eFlC9
+        metadata_filtering_mode: disabled
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: qwen3-rerank
+            provider: langgenius/tongyi/tongyi
+          score_threshold: 0
+          top_k: 4
+        query_attachment_selector: []
+        query_variable_selector:
+        - start_1
+        - topic
+        retrieval_mode: multiple
+        selected: false
+        title: 知识检索
+        type: knowledge-retrieval
+      height: 89
+      id: kg_retrieval_1
+      position:
+        x: 2112
+        y: 0
+      positionAbsolute:
+        x: 2112
+        y: 0
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - kg_retrieval_1
+          - result
+        memory:
+          query_prompt_template: ''
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: qwen3.5-flash
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 9e05cb8e-0000-4000-9000-000000000010
+          role: system
+          text: 你是一个技术调研专家。根据知识库检索结果和用户提供的信息，生成一份技术分析报告。
+        - id: 9e05cb8e-0000-4000-9000-000000000011
+          role: user
+          text: '研究主题：{{#start_1.topic#}}
+
+            参考文件内容：{{#var_agg_1.output#}}
+
+            知识库检索结果：{{#kg_retrieval_1.result#}}
+
+
+            请生成技术分析报告。
+
+            '
+        selected: false
+        title: 技术分析
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: llm_rag
+      position:
+        x: 2796
+        y: 15.833333333333321
+      positionAbsolute:
+        x: 2796
+        y: 15.833333333333321
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        headers: ''
+        method: get
+        params: ''
+        retry_config:
+          retry_enabled: false
+        selected: false
+        ssl_verify: true
+        timeout:
+          max_connect_timeout: 10
+          max_read_timeout: 60
+          max_write_timeout: 10
+        title: 市场数据请求
+        type: http-request
+        url: 'https://httpbin.org/get?topic={{#start_1.topic#}}'
+      height: 91
+      id: http_req_1
+      position:
+        x: 2112
+        y: 169
+      positionAbsolute:
+        x: 2112
+        y: 169
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(body: str) -> dict:\n    try:\n        data\
+          \ = json.loads(body)\n        parsed = {\n            \"topic\": data.get(\"\
+          args\", {}).get(\"topic\", \"未知主题\"),\n            \"status\": \"success\"\
+          \n        }\n    except Exception:\n        parsed = {\"topic\": \"解析失败\"\
+          , \"status\": \"error\"}\n    return {\"parsed_data\": json.dumps(parsed,\
+          \ ensure_ascii=False)}\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          parsed_data:
+            children: null
+            type: string
+        selected: false
+        title: 解析市场数据
+        type: code
+        variables:
+        - value_selector:
+          - http_req_1
+          - body
+          variable: body
+      height: 51
+      id: code_parse
+      position:
+        x: 2454
+        y: 204.16666666666669
+      positionAbsolute:
+        x: 2454
+        y: 204.16666666666669
+      selected: true
+      type: custom
+      width: 242
+    - data:
+        selected: false
+        template: '市场分析数据报告
+
+          ================
+
+          {{ data }}
+
+
+          基于以上市场数据，已完成市场分析信息收集。
+
+          '
+        title: 格式化市场数据
+        type: template-transform
+        variables:
+        - value_selector:
+          - code_parse
+          - parsed_data
+          variable: data
+      height: 51
+      id: tpl_transform_1
+      position:
+        x: 2796
+        y: 212.66666666666669
+      positionAbsolute:
+        x: 2796
+        y: 212.66666666666669
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        instruction: 从研究主题中提取最适合搜索的关键词。
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: qwen3.5-flash
+          provider: langgenius/tongyi/tongyi
+        parameters:
+        - description: 用于搜索引擎的优化关键词
+          name: keywords
+          required: true
+          type: string
+        query:
+        - start_1
+        - topic
+        reasoning_mode: prompt
+        selected: false
+        title: 提取搜索关键词
+        type: parameter-extractor
+        vision:
+          enabled: false
+      height: 87
+      id: param_extractor_1
+      position:
+        x: 2112
+        y: 340
+      positionAbsolute:
+        x: 2112
+        y: 340
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        plugin_id: langgenius/tavily
+        provider_id: langgenius/tavily/tavily
+        provider_name: langgenius/tavily/tavily
+        provider_type: builtin
+        selected: false
+        title: 搜索引擎
+        tool_configurations: {}
+        tool_description: 搜索引擎工具
+        tool_label: Tavily Search
+        tool_name: tavily_search
+        tool_node_version: '2'
+        tool_parameters:
+          query:
+            type: mixed
+            value: '{{#param_extractor_1.keywords#}}'
+        type: tool
+      height: 51
+      id: tool_search_1
+      position:
+        x: 2796
+        y: 372.5
+      positionAbsolute:
+        x: 2796
+        y: 372.5
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        output_type: string
+        selected: false
+        title: 合并分类结果
+        type: variable-aggregator
+        variables:
+        - - llm_rag
+          - text
+        - - tpl_transform_1
+          - output
+        - - tool_search_1
+          - text
+      height: 159
+      id: var_agg_2
+      position:
+        x: 3158
+        y: 136.08333333333334
+      positionAbsolute:
+        x: 3158
+        y: 136.08333333333334
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        code: "def main(text: str) -> dict:\n    sections = text.split(\"\\n\\n\"\
+          ) if text else [\"默认分析维度\"]\n    items = [s.strip() for s in sections if\
+          \ s.strip()]\n    if not items:\n        items = [\"默认分析维度\"]\n    return\
+          \ {\"dimensions\": items}\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          dimensions:
+            children: null
+            type: array[string]
+        selected: false
+        title: 拆分分析维度
+        type: code
+        variables:
+        - value_selector:
+          - var_agg_2
+          - output
+          variable: text
+      height: 51
+      id: code_split
+      position:
+        x: 3500
+        y: 216.58333333333334
+      positionAbsolute:
+        x: 3500
+        y: 216.58333333333334
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        error_handle_mode: remove-abnormal-output
+        height: 207
+        is_parallel: false
+        iterator_selector:
+        - code_split
+        - dimensions
+        output_selector:
+        - iter_llm_1
+        - text
+        output_type: array[string]
+        parallel_nums: 3
+        selected: false
+        startNodeType: llm
+        start_node_id: iteration_start_1
+        title: 逐维度深入分析
+        type: iteration
+        width: 500
+      height: 207
+      id: iteration_1
+      position:
+        x: 3842
+        y: 147.08333333333334
+      positionAbsolute:
+        x: 3842
+        y: 147.08333333333334
+      selected: false
+      type: custom
+      width: 500
+    - data:
+        desc: ''
+        isInIteration: true
+        selected: false
+        title: ''
+        type: iteration-start
+      draggable: false
+      height: 48
+      id: iteration_start_1
+      parentId: iteration_1
+      position:
+        x: 60
+        y: 71.5
+      positionAbsolute:
+        x: 3902
+        y: 218.58333333333334
+      selectable: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 44
+      zIndex: 1002
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: true
+        isIterationStart: true
+        iteration_id: iteration_1
+        memory:
+          query_prompt_template: ''
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: qwen3.5-flash
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 9e05cb8e-0000-4000-9000-000000000020
+          role: system
+          text: 你是一个深度分析专家。对给定的分析维度进行深入分析。
+        - id: 9e05cb8e-0000-4000-9000-000000000021
+          role: user
+          text: '研究主题：{{#start_1.topic#}}
+
+            当前分析维度：{{#iteration_1.item#}}
+
+
+            请对这个维度进行深入分析，输出 200 字以内的分析结论。
+
+            '
+        selected: false
+        title: 维度分析
+        type: llm
+        vision:
+          enabled: false
+      extent: parent
+      height: 87
+      id: iter_llm_1
+      parentId: iteration_1
+      position:
+        x: 184
+        y: 60
+      positionAbsolute:
+        x: 4026
+        y: 207.08333333333334
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1001
+    - data:
+        code: "def main(items: list) -> dict:\n    if not items:\n        return {\"\
+          merged_text\": \"\"}\n    merged = \"\\n\\n---\\n\\n\".join(str(item) for\
+          \ item in items)\n    return {\"merged_text\": merged}\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          merged_text:
+            children: null
+            type: string
+        selected: false
+        title: 合并维度分析
+        type: code
+        variables:
+        - value_selector:
+          - iteration_1
+          - output
+          variable: items
+      height: 51
+      id: code_merge
+      position:
+        x: 4442
+        y: 259.58333333333337
+      positionAbsolute:
+        x: 4442
+        y: 259.58333333333337
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        break_conditions:
+        - comparison_operator: ≥
+          id: 27945f3a-0000-4000-9000-000000000020
+          value: '8'
+          varType: number
+          variable_selector:
+          - loop_1
+          - quality_score
+        error_handle_mode: terminated
+        height: 329
+        logical_operator: and
+        loop_count: 5
+        loop_variables:
+        - id: 75b80ccd-0000-4000-9000-000000000020
+          label: report_text
+          value:
+          - code_merge
+          - merged_text
+          value_type: variable
+          var_type: string
+        - id: 75b80ccd-0000-4000-9000-000000000021
+          label: quality_score
+          value: '0'
+          value_type: constant
+          var_type: number
+        selected: false
+        start_node_id: loop_1_start
+        title: 迭代优化报告
+        type: loop
+        width: 1130
+      height: 329
+      id: loop_1
+      position:
+        x: 4784
+        y: 129.08333333333334
+      positionAbsolute:
+        x: 4784
+        y: 129.08333333333334
+      selected: false
+      type: custom
+      width: 1130
+    - data:
+        desc: ''
+        isInLoop: true
+        selected: false
+        title: ''
+        type: loop-start
+      draggable: false
+      height: 48
+      id: loop_1_start
+      parentId: loop_1
+      position:
+        x: 60
+        y: 71.5
+      positionAbsolute:
+        x: 4844
+        y: 200.58333333333334
+      selectable: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-loop-start
+      width: 44
+      zIndex: 1002
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInLoop: true
+        loop_id: loop_1
+        memory:
+          query_prompt_template: ''
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.5
+          mode: chat
+          name: qwen3.5-flash
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: 9e05cb8e-0000-4000-9000-000000000030
+          role: system
+          text: 你是一个报告优化专家。根据质量反馈改进报告。
+        - id: 9e05cb8e-0000-4000-9000-000000000031
+          role: user
+          text: '当前报告内容：
+
+            {{#loop_1.report_text#}}
+
+
+            当前质量评分：{{#loop_1.quality_score#}}/10
+
+
+            请改进这份报告，使其更加专业、完整、结构清晰。
+
+            '
+        selected: false
+        title: 改进报告
+        type: llm
+        vision:
+          enabled: false
+      extent: parent
+      height: 87
+      id: loop_llm_1
+      parentId: loop_1
+      position:
+        x: 184
+        y: 60
+      positionAbsolute:
+        x: 4968
+        y: 189.08333333333334
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1002
+    - data:
+        code: "def main(text: str) -> dict:\n    score = 5.0\n    length = len(text)\n\
+          \    if length > 500:\n        score += 1.0\n    if length > 1000:\n   \
+          \     score += 1.0\n    if \"总结\" in text or \"结论\" in text:\n        score\
+          \ += 1.0\n    if score > 10:\n        score = 10\n    return {\"improved_text\"\
+          : text, \"score\": score}\n"
+        code_language: python3
+        desc: ''
+        isInLoop: true
+        loop_id: loop_1
+        outputs:
+          improved_text:
+            children: null
+            type: string
+          score:
+            children: null
+            type: number
+        selected: false
+        title: 质量评分
+        type: code
+        variables:
+        - value_selector:
+          - loop_llm_1
+          - text
+          variable: text
+      extent: parent
+      height: 51
+      id: loop_code_1
+      parentId: loop_1
+      position:
+        x: 506
+        y: 92.5
+      positionAbsolute:
+        x: 5290
+        y: 221.58333333333334
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1002
+    - data:
+        isInIteration: false
+        isInLoop: true
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - loop_code_1
+          - improved_text
+          variable_selector:
+          - loop_1
+          - report_text
+        - input_type: variable
+          operation: over-write
+          value:
+          - loop_code_1
+          - score
+          variable_selector:
+          - loop_1
+          - quality_score
+        loop_id: loop_1
+        selected: false
+        title: 更新循环变量
+        type: assigner
+        version: '2'
+      height: 109
+      id: loop_assigner_1
+      parentId: loop_1
+      position:
+        x: 828
+        y: 72
+      positionAbsolute:
+        x: 5612
+        y: 201.08333333333334
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 1002
+    - data:
+        agent_parameters:
+          instruction:
+            type: constant
+            value: 你是一个专业的报告编辑，擅长润色和优化报告。如果需要补充信息，可以使用搜索工具。
+          model:
+            type: constant
+            value:
+              completion_params:
+                temperature: 0.3
+              mode: chat
+              model: qwen3.6-plus
+              model_type: llm
+              name: qwen3.5-flash
+              provider: langgenius/tongyi/tongyi
+              type: model-selector
+          query:
+            type: constant
+            value: '请对以下报告进行最终润色，确保语言流畅、结构清晰、专业性强：
+
+              {{#loop_1.report_text#}}
+
+              '
+          tools:
+            type: constant
+            value:
+            - enabled: true
+              extra:
+                description: 搜索引擎工具
+              parameters:
+                max_results:
+                  auto: 1
+                  value: null
+                query:
+                  auto: 1
+                  value: null
+                search_depth:
+                  auto: 1
+                  value: null
+              provider_name: langgenius/tavily/tavily
+              provider_show_name: langgenius/tavily/tavily
+              settings:
+                max_results:
+                  value:
+                    type: constant
+                    value: 5
+                search_depth:
+                  value:
+                    type: constant
+                    value: advanced
+              tool_description: 搜索引擎工具
+              tool_label: Tavily Search
+              tool_name: tavily_search
+              type: builtin
+        agent_strategy_label: ReAct
+        agent_strategy_name: ReAct
+        agent_strategy_provider_name: langgenius/agent/agent
+        meta:
+          minimum_dify_version: 1.7.0
+          version: 0.0.2
+        output_schema: {}
+        plugin_unique_identifier: langgenius/agent:0.0.39@ceea6a76b3a495de2df2a55bcea82e903d49b06f4d8e1463c2aa085657f27164
+        selected: false
+        title: 最终润色
+        tool_node_version: '2'
+        type: agent
+      height: 187
+      id: agent_1
+      position:
+        x: 6014
+        y: 254.91666666666663
+      positionAbsolute:
+        x: 6014
+        y: 254.91666666666663
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - agent_1
+          - text
+          variable: final_report
+        selected: false
+        title: 结束
+        type: end
+      height: 88
+      id: end_1
+      position:
+        x: 6356
+        y: 335.58333333333337
+      positionAbsolute:
+        x: 6356
+        y: 335.58333333333337
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        extract_by:
+          enabled: true
+          serial: '1'
+        filter_by:
+          conditions:
+          - comparison_operator: contains
+            key: name
+            value: ''
+          enabled: false
+        item_var_type: file
+        limit:
+          enabled: false
+          size: 10
+        order_by:
+          enabled: false
+          key: ''
+          value: asc
+        selected: false
+        title: 列表操作
+        type: list-operator
+        var_type: array[file]
+        variable:
+        - start_1
+        - upload_files
+      height: 92
+      id: '1781490337448'
+      position:
+        x: 755.9999999999998
+        y: 99.08333333333331
+      positionAbsolute:
+        x: 755.9999999999998
+        y: 99.08333333333331
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -1401.0000000000002
+      y: 121.99999999999994
+      zoom: 0.7
+  rag_pipeline_variables: []

@@ -136,7 +136,12 @@ selected: false
 **关键要点**：
 - 分支边的 `sourceHandle` 必须与目标 case 的 ID 一致
 - Dify 的 IF/ELSE **只支持两个分支**：`true` 和 `false`
-- 常用比较运算符：`contains`、`not contains`、`is`、`is not`、`empty`、`not empty`、`start with`、`end with`、`=`、`≠`、`>`、`<`、`≥`、`≤`
+- 比较运算符必须是 Dify 定义的字符串字面量。**特别注意 `≥` 和 `≤` 是 Unicode 全角字符，不是 ASCII 的 `>=` / `<=`**（否则报 `Input should be ... or '≥' or '≤'`）
+- 完整合法值（if-else / loop break_conditions 通用）：
+  - 字符串类：`contains`、`not contains`、`start with`、`end with`、`is`、`is not`、`empty`、`not empty`、`in`、`not in`、`all of`
+  - 数学类：`=`、`≠`、`>`、`<`、`≥`、`≤`
+  - 存在性：`null`、`not null`、`exists`、`not exists`
+- **禁止使用** ASCII 的 `>=`、`<=`、`==`、`!=`
 
 **多分支实现方式**：
 
@@ -239,7 +244,7 @@ body:
   data:
     - id: body-1
       key: text
-      type: string
+      type: text
       value: "{{#1770000000000.input_text#}}"
 authorization:
   type: no-auth
@@ -264,6 +269,10 @@ body:
 - `authorization` 需要 `config: null` 字段
 - `timeout` 字段名是 `max_connect_timeout`、`max_read_timeout`、`max_write_timeout`
 - 常用输出字段：`body`、`status_code`、`headers`、`files`
+- **`body.data[].type` 只允许 `'file'` 或 `'text'`**，不是 `'string'`（否则会报 `HttpRequestNodeData body.data.0.type Input should be 'file' or 'text'`）
+- **`body.data[].type: text` 时，value 会被当作 JSON 字符串 `json.loads` 解析**（而不是当作普通字符串嵌入请求体）。如果 value 是裸字符串（如 `"hello"`），会报 `Failed to parse JSON: hello`。
+- **传递纯字符串参数的推荐做法**：改用 `GET` + URL query string（如 `url: "https://example.com/api?q={{#start_1.topic#}}"`），把 `body.type` 设为 `none`、`body.data` 设为 `[]`。这样避免 body 的 JSON 解析陷阱。
+- 如果必须用 POST + JSON body 传纯字符串值，value 需要写成 JSON 字符串字面量形式：`value: '"{{#start_1.topic#}}"'`（外层是单引号包裹的双引号，让 Dify 解析后得到带引号的字符串）。
 
 ## template-transform
 
@@ -354,19 +363,36 @@ selected: false
 ## list-operator
 
 ```yaml
-title: "取第一个文件"
+title: "取第 1 个文件"
 type: list-operator
 filter_by:
+  conditions:
+    - comparison_operator: contains
+      key: name
+      value: ""
   enabled: false
 order_by:
   enabled: false
+  key: ""
+  value: asc
 extract_by:
   enabled: true
-  serial: first
+  serial: "1"
+item_var_type: file
+limit:
+  enabled: false
+  size: 10
 var_type: array[file]
 variable: ["sys", files]
 selected: false
 ```
+
+**关键要点**：
+
+- `limit` 是**必填字段**（缺失会报 `ListOperatorNodeData limit Field required`），即使不限制数量也要写 `limit: { enabled: false, size: 10 }`
+- `extract_by.serial` 是字符串序号（`"1"`、`"2"`、...），**不是** `"first"`/`"last"`
+- `filter_by` 和 `order_by` 在 `enabled: false` 时仍需带完整的子字段（`conditions`/`key`/`value`），否则可能解析失败
+- `item_var_type` 与 `var_type` 配套使用：`var_type: array[file]` 时 `item_var_type: file`
 
 用于在 code/tool 节点之前进行文件列表或数组提取。
 
@@ -559,7 +585,7 @@ is_parallel: false
 parallel_nums: 10
 start_node_id: "1770000000003"
 startNodeType: code          # 必须：指定迭代内起始节点类型（code/agent/tool/http-request 等）
-error_handle_mode: terminated  # terminated | remove-abnormally
+error_handle_mode: remove-abnormal-output  # terminated | continue-on-error | remove-abnormal-output
 width: 500                    # 需要足够大以容纳内部子节点
 selected: false
 ```
